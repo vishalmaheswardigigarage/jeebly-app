@@ -50,6 +50,8 @@ app.get("/api/orders/all", async (_req, res) => {
 });
 
 // Register the webhook during app initialization
+
+app.get("/api/webhook-status", async (req, res) => {
 async function registerWebhook() {
   try {
     const session = res.locals.shopify.session;
@@ -62,14 +64,15 @@ async function registerWebhook() {
       update: true,
     });
 
-    console.log("Webhook registered successfully");
+    console.log("Webhook triggered successfully");
   } catch (error) {
     console.error("Failed to register webhook:", error);
   }
 }
+registerWebhook();
+});
 
 // Call the webhook registration function
-registerWebhook();
 
 
 app.use(shopify.cspHeaders());

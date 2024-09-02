@@ -262,16 +262,6 @@ const PrivacyWebhookHandlers = {
       console.log('Shop Redact Webhook:', payload);
     },
   },
-
-  ORDERS_CREATE: {
-    deliveryMethod: DeliveryMethod.Http,
-    callbackUrl: '/api/webhooks',
-    callback: async (topic, shop, body, webhookId) => {
-      const payload = JSON.parse(body);
-      recentWebhookPayload.ORDERS_CREATE = payload;
-      console.log('Orders Create Webhook:', payload);
-    },
-  },
 };
 
 export default PrivacyWebhookHandlers;
