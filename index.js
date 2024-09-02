@@ -1,5 +1,4 @@
 import { join } from "path";
-import crypto from 'crypto';
 import { readFileSync } from "fs";
 import express from "express";
 import serveStatic from "serve-static";
@@ -54,25 +53,21 @@ app.get("/api/orders/all", async (_req, res) => {
 
 
 
-app.post('/webhooks/orders/create', (req, res) => {
-  if (!verifyWebhook(req)) {
-    return res.status(401).send('Unauthorized');
-  }
+app.post('/api/create-webhook', async (req, res) => {
+  const { shop, accessToken } = req.body;  // Expect shop and accessToken in the request body
 
-  const order = req.body;
-  console.log('Order created:', order);
-  res.status(200).send('Webhook received');
+  try {
+    await createWebhook(shop, accessToken);
+    res.status(200).send('Webhook created');
+  } catch (error) {
+    res.status(500).send('Failed to create webhook');
+  }
 });
 
-function verifyWebhook(req) {
-  const hmac = req.headers['x-shopify-hmac-sha256'];
-  const generatedHmac = crypto
-    .createHmac('sha256', process.env.SHOPIFY_API_SECRET)
-    .update(req.rawBody, 'utf8', 'hex')
-    .digest('base64');
 
-  return hmac === generatedHmac;
-}
+
+
+
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
