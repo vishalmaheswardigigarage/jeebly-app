@@ -1,4 +1,5 @@
 import { join } from "path";
+import crypto from 'crypto';
 import { readFileSync } from "fs";
 import express from "express";
 import serveStatic from "serve-static";
@@ -33,6 +34,7 @@ app.post(
   shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
 );
 
+
 // If you are adding routes outside of the /api path, remember to
 // also add a proxy rule for them in web/frontend/vite.config.js
 
@@ -52,45 +54,25 @@ app.get("/api/orders/all", async (_req, res) => {
 
 
 
-app.post('/api/create-webhook', async (req, res) => {
-  const { shop, accessToken } = req.body;  // Expect shop and accessToken in the request body
-
-  try {
-    await createWebhook(shop, accessToken);
-    res.status(200).send('Webhook created');
-  } catch (error) {
-    res.status(500).send('Failed to create webhook');
+app.post('/webhooks/orders/create', (req, res) => {
+  if (!verifyWebhook(req)) {
+    return res.status(401).send('Unauthorized');
   }
+
+  const order = req.body;
+  console.log('Order created:', order);
+  res.status(200).send('Webhook received');
 });
 
+function verifyWebhook(req) {
+  const hmac = req.headers['x-shopify-hmac-sha256'];
+  const generatedHmac = crypto
+    .createHmac('sha256', process.env.SHOPIFY_API_SECRET)
+    .update(req.rawBody, 'utf8', 'hex')
+    .digest('base64');
 
-
-
-// Register the webhook during app initialization
-
-
-// async function registerWebhook() {
-//   try {
-//     const session = res.locals.shopify.session;
-
-//     const webhook = new shopify.rest.Webhook({ session });
-//     webhook.address = "	https://webhook.site/a1d0ee89-7a99-4cdf-bdfd-f975b2208ae9";
-//     webhook.topic = "orders/create";
-//     webhook.format = "json";
-//     await webhook.save({
-//       update: true,
-//     });
-
-//     console.log("Webhook triggered successfully");
-//   } catch (error) {
-//     console.error("Failed to register webhook:", error);
-//   }
-// }
-// registerWebhook();
-
-
-// Call the webhook registration function
-
+  return hmac === generatedHmac;
+}
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
