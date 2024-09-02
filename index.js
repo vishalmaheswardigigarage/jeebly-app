@@ -51,7 +51,7 @@ app.get("/api/orders/all", async (_req, res) => {
 
 // Register the webhook during app initialization
 
-app.get("/api/webhook-status", async (req, res) => {
+app.get("/api/webhook-status", async (_req, res) => {
 async function registerWebhook() {
   try {
     const session = res.locals.shopify.session;
