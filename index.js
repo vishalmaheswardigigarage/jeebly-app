@@ -134,20 +134,6 @@ app.get("/api/orders/all", async (_req, res) => {
   console.log("order-data");
 });
 
-// Custom webhook handling route
-app.post('/api/webhooks', async (req, res) => {
-  const topic = req.headers['x-shopify-topic'];
-  const shop = req.headers['x-shopify-shop-domain'];
-  const body = req.body;
-  const webhookId = req.headers['x-shopify-webhook-id'];
-
-  if (PrivacyWebhookHandlers[topic]) {
-    await PrivacyWebhookHandlers[topic].callback(topic, shop, body, webhookId);
-  }
-
-  res.status(200).send('Webhook received');
-  console.log("webhook from index.js")
-});
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
