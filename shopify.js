@@ -24,4 +24,25 @@ const shopify = shopifyApp({
   sessionStorage: new MemorySessionStorage(),
 });
 
+async function createWebhook(shop, accessToken) {
+  const client = new shopify.Clients.Rest(shop, accessToken);
+
+  try {
+    const response = await client.post({
+      path: 'webhooks',
+      data: {
+        webhook: {
+          topic: 'orders/create',
+          address: 'https://yourapp.com/webhooks/orders/create',
+          format: 'json'
+        }
+      },
+      type: shopify.Clients.Rest.DataType.JSON,
+    });
+    console.log('Webhook created:', response.body);
+  } catch (error) {
+    console.error('Failed to create webhook:', error);
+  }
+}
+
 export default shopify;
