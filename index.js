@@ -49,14 +49,27 @@ app.get("/api/orders/all", async (_req, res) => {
   console.log("order-date")
 });
 
-const webhook = new shopify.rest.Webhook({session: session});
-webhook.address = "https://shopify-production-app.vercel.app/api/webhooks/data";      // ENDPOINT WHERE SHOPIFY WILL SEND THE DATA
-webhook.topic = "orders/create";                            //  TOPIC YOU CAN FIND A LIST OF TOPICS AT => https://shopify.dev/docs/api/webhooks?reference=toml
-webhook.format = "json";
-await webhook.save({
-  update: true,
-});
+// Register the webhook during app initialization
+async function registerWebhook() {
+  try {
+    const session = res.locals.shopify.session;
 
+    const webhook = new shopify.rest.Webhook({ session });
+    webhook.address = "https://shopify-production-app.vercel.app/api/webhooks/data";
+    webhook.topic = "orders/create";
+    webhook.format = "json";
+    await webhook.save({
+      update: true,
+    });
+
+    console.log("Webhook registered successfully");
+  } catch (error) {
+    console.error("Failed to register webhook:", error);
+  }
+}
+
+// Call the webhook registration function
+registerWebhook();
 
 
 app.use(shopify.cspHeaders());
