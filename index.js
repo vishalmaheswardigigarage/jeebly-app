@@ -51,13 +51,13 @@ app.get("/api/orders/all", async (_req, res) => {
 
 // Register the webhook during app initialization
 
-app.get("/api/webhook-status", async (_req, res) => {
+
 async function registerWebhook() {
   try {
     const session = res.locals.shopify.session;
 
     const webhook = new shopify.rest.Webhook({ session });
-    webhook.address = "https://shopify-production-app.vercel.app/api/webhooks/data";
+    webhook.address = "	https://webhook.site/a1d0ee89-7a99-4cdf-bdfd-f975b2208ae9";
     webhook.topic = "orders/create";
     webhook.format = "json";
     await webhook.save({
@@ -70,7 +70,7 @@ async function registerWebhook() {
   }
 }
 registerWebhook();
-});
+
 
 // Call the webhook registration function
 
