@@ -49,27 +49,44 @@ app.get("/api/orders/all", async (_req, res) => {
   console.log("order-date")
 });
 
+
+
+
+app.post('/api/create-webhook', async (req, res) => {
+  const { shop, accessToken } = req.body;  // Expect shop and accessToken in the request body
+
+  try {
+    await createWebhook(shop, accessToken);
+    res.status(200).send('Webhook created');
+  } catch (error) {
+    res.status(500).send('Failed to create webhook');
+  }
+});
+
+
+
+
 // Register the webhook during app initialization
 
 
-async function registerWebhook() {
-  try {
-    const session = res.locals.shopify.session;
+// async function registerWebhook() {
+//   try {
+//     const session = res.locals.shopify.session;
 
-    const webhook = new shopify.rest.Webhook({ session });
-    webhook.address = "	https://webhook.site/a1d0ee89-7a99-4cdf-bdfd-f975b2208ae9";
-    webhook.topic = "orders/create";
-    webhook.format = "json";
-    await webhook.save({
-      update: true,
-    });
+//     const webhook = new shopify.rest.Webhook({ session });
+//     webhook.address = "	https://webhook.site/a1d0ee89-7a99-4cdf-bdfd-f975b2208ae9";
+//     webhook.topic = "orders/create";
+//     webhook.format = "json";
+//     await webhook.save({
+//       update: true,
+//     });
 
-    console.log("Webhook triggered successfully");
-  } catch (error) {
-    console.error("Failed to register webhook:", error);
-  }
-}
-registerWebhook();
+//     console.log("Webhook triggered successfully");
+//   } catch (error) {
+//     console.error("Failed to register webhook:", error);
+//   }
+// }
+// registerWebhook();
 
 
 // Call the webhook registration function
