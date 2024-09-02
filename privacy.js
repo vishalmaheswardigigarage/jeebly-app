@@ -265,7 +265,7 @@ const PrivacyWebhookHandlers = {
 
   ORDERS_CREATE: {
     deliveryMethod: DeliveryMethod.Http,
-    callbackUrl: '/api/webhooks',
+    callbackUrl: '/api/webhooks/ordercreate',
     callback: async (topic, shop, body, webhookId) => {
       const payload = JSON.parse(body);
       recentWebhookPayload.ORDERS_CREATE = payload;
