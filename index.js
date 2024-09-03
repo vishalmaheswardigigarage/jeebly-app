@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import { readFileSync } from "fs";
 import express from "express";
 import serveStatic from "serve-static";
-import path from "path";
 import shopify from "./shopify.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 
@@ -51,10 +50,10 @@ app.get("/api/orders/all", async (_req, res) => {
   console.log("order-date")
 });
 
-
+// Order SYNC webhook
 let latestOrder = null;
 
-app.post('/webhooks/orders/create', (req, res) => {
+app.post('/api/webhooks/orders/create', (req, res) => {
   if (!verifyWebhook(req)) {
     return res.status(401).send('Unauthorized');
   }
@@ -68,9 +67,6 @@ app.post('/webhooks/orders/create', (req, res) => {
 app.get('/api/latest-order', (_req, res) => {
   res.json(latestOrder);  // Send the latest order data to the frontend
 });
-
-
-
 
 
 function verifyWebhook(req) {
