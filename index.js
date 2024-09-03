@@ -40,6 +40,7 @@ app.post(
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/api/orders/all", async (_req, res) => {
   const orderData = await shopify.api.rest.Order.all({
@@ -51,33 +52,60 @@ app.get("/api/orders/all", async (_req, res) => {
 });
 
 // Order SYNC webhook
-let latestOrder = null;
+// let latestOrder = null;
 
-app.post('/api/webhooks/orders/create', (req, res) => {
-  if (!verifyWebhook(req)) {
-    return res.status(401).send('Unauthorized');
-  }
+// app.post('/api/webhooks/orders/create', (req, res) => {
+//   if (!verifyWebhook(req)) {
+//     return res.status(401).send('Unauthorized');
+//   }
 
- latestOrder = req.body;
-  console.log('Order created:', order);
-  res.status(200).send('Webhook received');
-});
+//  latestOrder = req.body;
+//   console.log('Order created:', order);
+//   res.status(200).send('Webhook received');
+// });
+
+// app.get('/api/latest-order', (_req, res) => {
+//   res.json(latestOrder);  // Send the latest order data to the frontend
+// });
 
 
-app.get('/api/latest-order', (_req, res) => {
-  res.json(latestOrder);  // Send the latest order data to the frontend
-});
+// function verifyWebhook(req) {
+//   const hmac = req.headers['x-shopify-hmac-sha256'];
+//   const generatedHmac = crypto
+//     .createHmac('sha256', process.env.SHOPIFY_API_SECRET)
+//     .update(req.rawBody, 'utf8', 'hex')
+//     .digest('base64');
 
+//   return hmac === generatedHmac;
+// }
 
-function verifyWebhook(req) {
-  const hmac = req.headers['x-shopify-hmac-sha256'];
-  const generatedHmac = crypto
-    .createHmac('sha256', process.env.SHOPIFY_API_SECRET)
-    .update(req.rawBody, 'utf8', 'hex')
+let recentWebhookPayload = {
+  ORDERS_CREATE: null,
+};
+
+// Endpoint to handle the ORDERS_CREATE webhook
+app.post('/api/webhooks/ordercreate', async (req, res) => {
+  const hmacHeader = req.get('X-Shopify-Hmac-Sha256');
+  const body = req.rawBody;
+  const secret = process.env.SHOPIFY_API_SECRET; // Your Shopify API Secret
+
+  const hash = crypto
+    .createHmac('sha256', secret)
+    .update(body, 'utf8')
     .digest('base64');
 
-  return hmac === generatedHmac;
-}
+  if (hash === hmacHeader) {
+    const payload = JSON.parse(body);
+    recentWebhookPayload.ORDERS_CREATE = payload;
+    console.log('Orders Create Webhook chal gya ha:', payload);
+
+    res.status(200).send('Webhook received');
+  } else {
+    console.error('Invalid HMAC signature');
+    res.status(401).send('Unauthorized');
+  }
+});
+
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
