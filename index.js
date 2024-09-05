@@ -53,7 +53,6 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 
     try {
         const payload = req.body;
-        latestWebhookData = payload;
         // Process the payload...
          console.log(process.env.SHOPIFY_API_SECRET);
         res.status(200).send('Webhook received',payload);
@@ -65,9 +64,9 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 });
 
 // Endpoint to get the latest webhook data
-app.get('/api/webhooks/latest', (req, res) => {
-    if (latestWebhookData) {
-        return res.status(200).json(latestWebhookData);
+app.get('/api/webhooks/latest', (_req, res) => {
+    if (payload) {
+        return res.status(200).json(payload);
     } else {
         return res.status(204).send('No webhook data available');
     }
@@ -88,7 +87,7 @@ app.post(
 );
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
-app.get("/api/orders/all", async (req, res) => {
+app.get("/api/orders/all", async (_req, res) => {
   const orderData = await shopify.api.rest.Order.all({
     session: res.locals.shopify.session,
     status: "any"
