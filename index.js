@@ -21,6 +21,60 @@ const STATIC_PATH =
 
 const app = express();
 
+// Middleware to capture raw body for HMAC verification
+app.use(express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf.toString(); // Capture the raw body as a string
+    }
+}));
+
+
+// Function to verify the Shopify webhook HMAC
+function verifyShopifyWebhook(req) {
+    const hmac = req.headers['x-shopify-hmac-sha256'];
+    const body = req.rawBody;
+
+    const generatedHash = crypto
+        .createHmac('sha256', process.env.SHOPIFY_API_SECRET)
+        .update(body, 'utf8')
+        .digest('base64');
+
+    return generatedHash === hmac;
+}
+
+// Webhook endpoint
+let latestWebhookData = null;
+app.post('/api/webhooks/ordercreate', async (req, res) => {
+  
+    if (!verifyShopifyWebhook(req)) {
+        return res.status(401).send('Unauthorized'); // Return 401 if the HMAC validation fails
+       
+    }
+
+    try {
+        const payload = req.body;
+        latestWebhookData = payload;
+        // Process the payload...
+         console.log(process.env.SHOPIFY_API_SECRET);
+        res.status(200).send('Webhook received',payload);
+       console.log("Webhook received:", req.headers, req.body); // Log headers and payload
+     
+    } catch (error) {
+        console.error('Error processing webhook:', error);
+    }
+});
+
+// Endpoint to get the latest webhook data
+app.get('/api/webhooks/latest', (req, res) => {
+    if (latestWebhookData) {
+        return res.status(200).json(latestWebhookData);
+    } else {
+        return res.status(204).send('No webhook data available');
+    }
+});
+
+
+
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
@@ -32,17 +86,9 @@ app.post(
   shopify.config.webhooks.path,
   shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
 );
-
-
-// If you are adding routes outside of the /api path, remember to
-// also add a proxy rule for them in web/frontend/vite.config.js
-
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.get("/api/orders/all", async (_req, res) => {
+app.get("/api/orders/all", async (req, res) => {
   const orderData = await shopify.api.rest.Order.all({
     session: res.locals.shopify.session,
     status: "any"
@@ -51,60 +97,6 @@ app.get("/api/orders/all", async (_req, res) => {
   console.log("order-date")
 });
 
-// Order SYNC webhook
-// let latestOrder = null;
-
-// app.post('/api/webhooks/orders/create', (req, res) => {
-//   if (!verifyWebhook(req)) {
-//     return res.status(401).send('Unauthorized');
-//   }
-
-//  latestOrder = req.body;
-//   console.log('Order created:', order);
-//   res.status(200).send('Webhook received');
-// });
-
-// app.get('/api/latest-order', (_req, res) => {
-//   res.json(latestOrder);  // Send the latest order data to the frontend
-// });
-
-
-// function verifyWebhook(req) {
-//   const hmac = req.headers['x-shopify-hmac-sha256'];
-//   const generatedHmac = crypto
-//     .createHmac('sha256', process.env.SHOPIFY_API_SECRET)
-//     .update(req.rawBody, 'utf8', 'hex')
-//     .digest('base64');
-
-//   return hmac === generatedHmac;
-// }
-
-let recentWebhookPayload = {
-  ORDERS_CREATE: null,
-};
-
-// Endpoint to handle the ORDERS_CREATE webhook
-app.post('/api/webhooks/ordercreate', async (req, res) => {
-  const hmacHeader = req.get('X-Shopify-Hmac-Sha256');
-  const body = req.rawBody;
-  const secret = process.env.SHOPIFY_API_SECRET; // Your Shopify API Secret
-
-  const hash = crypto
-    .createHmac('sha256', secret)
-    .update(body, 'utf8')
-    .digest('base64');
-
-  if (hash === hmacHeader) {
-    const payload = JSON.parse(body);
-    recentWebhookPayload.ORDERS_CREATE = payload;
-    console.log('Orders Create Webhook chal gya ha:', payload);
-
-    res.status(200).send('Webhook received');
-  } else {
-    console.error('Invalid HMAC signature');
-    res.status(401).send('Unauthorized');
-  }
-});
 
 
 app.use(shopify.cspHeaders());
@@ -117,9 +109,9 @@ app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
     .send(readFileSync(join(STATIC_PATH, "index.html")));
 });
 
-app.listen(PORT);
-
-
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
 
 
