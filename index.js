@@ -28,7 +28,6 @@ app.use(express.json({
     }
 }));
 
-let payload = null;
 // Function to verify the Shopify webhook HMAC
 function verifyShopifyWebhook(req) {
     const hmac = req.headers['x-shopify-hmac-sha256'];
@@ -50,19 +49,20 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
         return res.status(401).send('Unauthorized'); // Return 401 if the HMAC validation fails
        
     }
-
+    res.status(200).send('Webhook received');
     try {
-        payload = req.body;
+       const  payload = req.body;
         // Process the payload...
          console.log(process.env.SHOPIFY_API_SECRET);
-        res.status(200).send('Webhook received',payload);
-       console.log("Webhook received:", req.headers, req.body); // Log headers and payload
+      
+        processWebhookData(payload);
+        console.log("Webhook received:", payload); // Log headers and payload
      
     } catch (error) {
         console.error('Error processing webhook:', error);
     }
 });
-
+function processWebhookData(payload) {
 // Endpoint to get the latest webhook data
 app.get('/api/webhooks/latest', (_req, res) => {
     if (payload) {
@@ -71,7 +71,7 @@ app.get('/api/webhooks/latest', (_req, res) => {
         return res.status(204).send('No webhook data available');
     }
 });
-
+}
 
 
 // Set up Shopify authentication and webhook handling
