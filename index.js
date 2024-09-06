@@ -42,6 +42,7 @@ function verifyShopifyWebhook(req) {
 }
 
 // Webhook endpoint
+let payload = null;
 
 app.post('/api/webhooks/ordercreate', async (req, res) => {
   
@@ -51,8 +52,9 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
     }
     res.status(200).send('Webhook received');
     try {
-       const  payload = req.body;
+        payload = req.body;
         // Process the payload...
+        setImmediate(() => processWebhookData(payload));
          console.log(process.env.SHOPIFY_API_SECRET);
       
         processWebhookData(payload);
