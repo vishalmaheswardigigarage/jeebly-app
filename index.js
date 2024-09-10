@@ -444,9 +444,9 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
   try {
     payload = req.body;
     console.log("Webhook payload successfully verified and received.");
-
+   console.log("payload data",payload?.shipping_address?.name)
     // Process the payload asynchronously and send it to the bookshipment API
-    setImmediate(() => processWebhookData(payload));
+    await processWebhookData(payload);
     console.log("Initiated asynchronous processing of the webhook payload.");
 
     res.status(200).json({ success: true, message: 'Webhook received' });
@@ -555,7 +555,7 @@ async function createShipment({
     destination_address_landmark: "landmark",
     destination_address_city: selectedCity,
     destination_address_type: "Normal",
-    pickup_date: "2024-09-10" // Ensure this date is valid and acceptable by the API
+    pickup_date: "2024-09-03"
   });
 
   console.log("Creating shipment with the following payload:", body);
