@@ -225,7 +225,7 @@ async function processWebhookData(payload) {
     selectedArea,
     selectedCity,
     paymentType,
-    defaultAddress
+   
   });
 }
 
@@ -240,7 +240,7 @@ async function createShipment({
   selectedArea,
   selectedCity,
   paymentType,
-  defaultAddress
+  
 }) {
   const url = "https://demo.jeebly.com/app/create_shipment?client_key=fa618e51da171e489db355986c6dfc7c";
   const body = JSON.stringify({
@@ -254,15 +254,15 @@ async function createShipment({
     cod_amount: codAmount,
     num_pieces: pieces,
     customer_reference_number: "1034",
-    origin_address_name: defaultAddress.addr_area,
+    origin_address_name:"shekhar",
     origin_address_mob_no_country_code: "971",
-    origin_address_mobile_number: defaultAddress.addr_mobile_number,
+    origin_address_mobile_number: "+236332521411",
     origin_address_alt_ph_country_code: "2522",
     origin_address_alternate_phone: "3631422252141",
-    origin_address_house_no: defaultAddress.addr_house_no,
-    origin_address_building_name: defaultAddress.addr_building_name,
-    origin_address_area: defaultAddress.addr_area,
-    origin_address_landmark: defaultAddress.addr_landmark,
+    origin_address_house_no: "50",
+    origin_address_building_name: "test building",
+    origin_address_area: "test area",
+    origin_address_landmark: "name",
     origin_address_city: "Dubai",
     origin_address_type: "Normal",
     destination_address_name: dropoffName,
