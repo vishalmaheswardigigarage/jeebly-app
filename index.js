@@ -530,7 +530,7 @@ async function createShipment({
     description: description,
     weight: weight,
     payment_type: paymentType,
-    cod_amount: codAmount,
+    cod_amount:"0",
     num_pieces: pieces,
     customer_reference_number: "1034",
     origin_address_name: defaultAddress.addr_area,
@@ -558,7 +558,7 @@ async function createShipment({
     pickup_date: "2024-09-03"
   });
 
-  console.log("Creating shipment with the following payload:", body);
+  console.log("Creating shipment with the following payload:");
 
   try {
     const response = await fetch(url, {
