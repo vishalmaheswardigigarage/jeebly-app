@@ -253,7 +253,7 @@ async function createShipment({
     payment_type: paymentType,
     cod_amount: codAmount,
     num_pieces: pieces,
-    customer_reference_number: "Test0021",
+    customer_reference_number: "1034",
     origin_address_name: defaultAddress.addr_area,
     origin_address_mob_no_country_code: "971",
     origin_address_mobile_number: defaultAddress.addr_mobile_number,
@@ -268,15 +268,15 @@ async function createShipment({
     destination_address_name: dropoffName,
     destination_address_mob_no_country_code: "971",
     destination_address_mobile_number: dropoffPhone,
-    destination_details_alt_ph_country_code: "",
-    destination_details_alternate_phone: "",
+    destination_details_alt_ph_country_code: "+11",
+    destination_details_alternate_phone: "569996547444",
     destination_address_house_no: "43",
     destination_address_building_name: "building_name",
     destination_address_area: selectedArea,
     destination_address_landmark: "landmark",
     destination_address_city: selectedCity,
     destination_address_type: "Normal",
-    pickup_date: "2024-07-26"
+    pickup_date: "2024-09-10"
   });
 
   try {
