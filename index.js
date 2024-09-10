@@ -555,7 +555,7 @@ async function createShipment({
     destination_address_landmark: "landmark",
     destination_address_city: selectedCity,
     destination_address_type: "Normal",
-    pickup_date: "09/03/2024"
+    pickup_date: "2024-07-26"
   });
 
   console.log("Creating shipment with the following payload:");
