@@ -532,7 +532,7 @@ async function createShipment({
     payment_type: paymentType,
     cod_amount:"0",
     num_pieces: pieces,
-    customer_reference_number: "1034",
+    customer_reference_number: "1043",
     origin_address_name: defaultAddress.addr_area,
     origin_address_mob_no_country_code: "971",
     origin_address_mobile_number: "+236332521411",
