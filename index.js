@@ -551,7 +551,7 @@ async function createShipment({
     description: description,
     weight: weight,
     payment_type: paymentType,
-    cod_amount:codAmount||"0",
+    cod_amount:"0",
     num_pieces: pieces,
     customer_reference_number: orderNumber || "#001",
     origin_address_name: defaultAddress.addr_area,
