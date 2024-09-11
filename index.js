@@ -455,7 +455,21 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
+// Pickupe date 
+function getNextDayDate() {
+  const today = new Date();
+  
+  // Add one day to the current date
+  const nextDay = new Date(today);
+  nextDay.setDate(today.getDate() + 1);
 
+  // Format the date as "YYYY-MM-DD"
+  const year = nextDay.getFullYear();
+  const month = String(nextDay.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, so we add 1
+  const day = String(nextDay.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
 // Function to process webhook data and call createShipment
 async function processWebhookData(payload) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
@@ -477,8 +491,9 @@ async function processWebhookData(payload) {
   const dropoffPhone = payload?.shipping_address?.phone || "Unknown";
   const selectedArea = payload?.shipping_address?.address1 || "Unknown Area";
   const selectedCity = payload?.shipping_address?.city || "Unknown City";
-
+  const orderNumber = payload?.order_number || "#001";
   const paymentType = payload?.financial_status === "paid" ? "Prepaid" : "COD";
+  const pickupDate = getNextDayDate();
 
   console.log("Extracted Data for Shipment:", {
     description,
@@ -490,7 +505,9 @@ async function processWebhookData(payload) {
     selectedArea,
     selectedCity,
     paymentType,
-    defaultAddress
+    pickupDate,
+    defaultAddress,
+    orderNumber
   });
 
   // Call the createShipment function with the extracted data
@@ -503,8 +520,10 @@ async function processWebhookData(payload) {
     dropoffPhone,
     selectedArea,
     selectedCity,
+    pickupDate,
     paymentType,
-    defaultAddress
+    defaultAddress,
+    orderNumber
   });
 }
 
@@ -519,7 +538,9 @@ async function createShipment({
   selectedArea,
   selectedCity,
   paymentType,
-  defaultAddress
+  defaultAddress,
+  orderNumber,
+  pickupDate
 }) {
   const url = "https://demo.jeebly.com/app/create_shipment?client_key=fa618e51da171e489db355986c6dfc7c";
   const body = JSON.stringify({
@@ -530,32 +551,32 @@ async function createShipment({
     description: description,
     weight: weight,
     payment_type: paymentType,
-    cod_amount:"0",
+    cod_amount:codAmount||"0",
     num_pieces: pieces,
-    customer_reference_number: "1043",
+    customer_reference_number: orderNumber || "#001",
     origin_address_name: defaultAddress.addr_area,
     origin_address_mob_no_country_code: "971",
-    origin_address_mobile_number: "+236332521411",
+    origin_address_mobile_number: defaultAddress.addr_mobile_number,
     origin_address_alt_ph_country_code: "2522",
     origin_address_alternate_phone: "3631422252141",
-    origin_address_house_no: "50",
-    origin_address_building_name: "test building",
-    origin_address_area: "test area",
-    origin_address_landmark: "name",
+    origin_address_house_no: defaultAddress.addr_house_no,
+    origin_address_building_name: defaultAddress.addr_building_name,
+    origin_address_area: defaultAddress.addr_area,
+    origin_address_landmark: defaultAddress.addr_landmark,
     origin_address_city: "Dubai",
     origin_address_type: "Normal",
     destination_address_name: dropoffName,
     destination_address_mob_no_country_code: "971",
-    destination_address_mobile_number: "569996547444",
+    destination_address_mobile_number: dropoffPhone|| "569996547444",
     destination_details_alt_ph_country_code: "11",
-    destination_details_alternate_phone: "569996547444",
+    destination_details_alternate_phone: dropoffPhone|| "569996547444",
     destination_address_house_no: "43",
     destination_address_building_name: "building_name",
     destination_address_area: selectedArea,
     destination_address_landmark: "landmark",
     destination_address_city: selectedCity,
     destination_address_type: "Normal",
-    pickup_date: "2024-09-11"
+    pickup_date: pickupDate||"2024-09-12"
   });
 
   console.log("Creating shipment with the following payload:");
