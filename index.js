@@ -542,7 +542,8 @@ async function createShipment({
   orderNumber,
   pickupDate
 }) {
-  const url = "https://demo.jeebly.com/app/create_shipment?client_key=fa618e51da171e489db355986c6dfc7c";
+  const url = "https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c";
+  // const url = "https://demo.jeebly.com/app/create_shipment?client_key=fa618e51da171e489db355986c6dfc7c";
   const body = JSON.stringify({
     client_key: "fa618e51da171e489db355986c6dfc7c",
     delivery_type: "Next Day",
