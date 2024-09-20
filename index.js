@@ -806,7 +806,7 @@ async function processWebhookData(payload) {
   const dropoffName = payload?.shipping_address?.name || "Unknown";
   const dropoffPhone = payload?.shipping_address?.phone || "Unknown";
   const selectedArea = payload?.shipping_address?.address1 || "Unknown Area";
-  const selectedCity = payload?.shipping_address?.city || "Unknown City";
+  const selectedCity = payload?.shipping_address?.city || "Dubai";
   const orderNumber = payload?.order_number || "#001";
   const paymentType = payload?.financial_status === "paid" ? "Prepaid" : "COD";
   const pickupDate = getNextDayDate();
@@ -891,7 +891,7 @@ async function createShipment({
     destination_address_building_name: "building_name",
     destination_address_area: selectedArea,
     destination_address_landmark: "landmark",
-    destination_address_city: selectedCity || "no city found",
+    destination_address_city: selectedCity || "Dubai",
     destination_address_type: "Normal",
     pickup_date: pickupDate||"2024-09-12"
   });
