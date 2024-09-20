@@ -866,7 +866,7 @@ async function createShipment({
     load_type: "Non-document",
     consignment_type: "FORWARD",
     description: description,
-    weight: weight,
+    weight: "1000"|| weight,
     payment_type: paymentType,
     cod_amount:"0",
     num_pieces: pieces,
