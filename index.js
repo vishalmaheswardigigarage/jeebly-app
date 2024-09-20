@@ -912,7 +912,9 @@ async function createShipment({
 
     if (response.ok) {
       console.log("Shipment created successfully:", responseBody);
-      updateOrder();
+      // order update api Fetch
+      await updateOrder(orderNumber, awbNumber);
+      // 
       const awbNumber = responseBody["AWB No"];
       if (awbNumber) {
         updateOrderNoteWithAWB(orderNumber, awbNumber);
@@ -927,24 +929,7 @@ async function createShipment({
   }
 }
 
-// async function updateOrderNoteWithAWB(orderNumber,awbNumber,session) {
-//   try {
-//     const order = new shopify.rest.Order({ session });
-//     order.id = orderNumber;
-//     order.note = `AWB Number: ${awbNumber}`;
-//     await order.save({
-//       update: true,
-//     });
-
-//     console.log(`Order ${orderNumber} updated with AWB: ${awbNumber}`);
-//   } catch (error) {
-//     console.error(`Error updating order ${orderNumber}:`, error);
-//   }
-// }
-
-// Function to fetch the default address
-
-// Function to update the order note with AWB number
+// Function to update the order note with AWB number in Shopify
 async function updateOrderNoteWithAWB(session, orderNumber, awbNumber) {
   try {
     const order = new shopify.rest.Order({ session });
@@ -956,22 +941,24 @@ async function updateOrderNoteWithAWB(session, orderNumber, awbNumber) {
     });
 
     console.log(`Order ${orderNumber} updated with AWB: ${awbNumber}`);
-    
   } catch (error) {
-    console.error('Error updating order:', error);
+    console.error(`Error updating order ${orderNumber}:`, error);
     throw new Error('Error updating order');
   }
 }
 
-// API endpoint to update order
+// API endpoint to update order note
 app.post('/api/orders/update', async (req, res) => {
   const { orderNumber, awbNumber } = req.body;
-  
+
   try {
     const session = res.locals.shopify.session;  // Ensure session is available in the request
+    if (!session) throw new Error("Session not found");
+
     await updateOrderNoteWithAWB(session, orderNumber, awbNumber);
     res.status(200).send('Order updated successfully');
   } catch (error) {
+    console.error('Error updating order:', error);
     res.status(500).send('Error updating order');
   }
 });
@@ -993,7 +980,8 @@ async function updateOrder(orderNumber, awbNumber) {
     if (response.ok) {
       console.log('Order updated successfully');
     } else {
-      console.error('Error updating order:', await response.text());
+      const errorText = await response.text();
+      console.error('Error updating order:', errorText);
     }
   } catch (error) {
     console.error('Error making request:', error);
