@@ -912,7 +912,7 @@ async function createShipment({
 
     if (response.ok) {
       console.log("Shipment created successfully:", responseBody);
-      const awbNumber = responseBody?.awbNumber; // Assuming the AWB number is in the response body
+      const awbNumber = responseBody["AWB No"];
       if (awbNumber) {
         updateOrderNoteWithAWB(session, orderNumber, awbNumber);
       } else {
