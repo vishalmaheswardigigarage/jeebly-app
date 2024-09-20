@@ -800,7 +800,7 @@ async function processWebhookData(payload) {
 
   // Extract data from the webhook payload
   const description = payload?.line_items?.[0]?.title || "Default description";
-  const weight = Math.round(payload?.line_items?.[0]?.grams || 1); 
+  const weight = (payload?.line_items?.[0]?.grams || 1000); 
   const codAmount = parseFloat(payload?.total_price) || 0;
   const pieces = payload?.line_items?.length || 1;
   const dropoffName = payload?.shipping_address?.name || "Unknown";
