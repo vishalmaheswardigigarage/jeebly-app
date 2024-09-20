@@ -912,12 +912,11 @@ async function createShipment({
 
     if (response.ok) {
       console.log("Shipment created successfully:", responseBody);
-      // order update api Fetch
-      await updateOrder(orderNumber, awbNumber);
-      // 
       const awbNumber = responseBody["AWB No"];
+    
       if (awbNumber) {
         updateOrderNoteWithAWB(orderNumber, awbNumber);
+        await updateOrder(orderNumber, awbNumber);
       } else {
         console.error("AWB number is missing in the shipment response.");
       }
