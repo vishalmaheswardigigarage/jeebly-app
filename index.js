@@ -912,6 +912,7 @@ async function createShipment({
 
     if (response.ok) {
       console.log("Shipment created successfully:", responseBody);
+      updateOrder();
       const awbNumber = responseBody["AWB No"];
       if (awbNumber) {
         updateOrderNoteWithAWB(orderNumber, awbNumber);
@@ -926,23 +927,80 @@ async function createShipment({
   }
 }
 
-async function updateOrderNoteWithAWB(orderNumber,awbNumber) {
+// async function updateOrderNoteWithAWB(orderNumber,awbNumber,session) {
+//   try {
+//     const order = new shopify.rest.Order({ session });
+//     order.id = orderNumber;
+//     order.note = `AWB Number: ${awbNumber}`;
+//     await order.save({
+//       update: true,
+//     });
+
+//     console.log(`Order ${orderNumber} updated with AWB: ${awbNumber}`);
+//   } catch (error) {
+//     console.error(`Error updating order ${orderNumber}:`, error);
+//   }
+// }
+
+// Function to fetch the default address
+
+// Function to update the order note with AWB number
+async function updateOrderNoteWithAWB(session, orderNumber, awbNumber) {
   try {
-    const session = res.locals.shopify.session;
     const order = new shopify.rest.Order({ session });
     order.id = orderNumber;
     order.note = `AWB Number: ${awbNumber}`;
+
     await order.save({
       update: true,
     });
 
-    console.log(`Order ${orderNumber} updated with AWB: ${"236663666"}`);
+    console.log(`Order ${orderNumber} updated with AWB: ${awbNumber}`);
+    
   } catch (error) {
-    console.error(`Error updating order ${orderNumber}:`, error);
+    console.error('Error updating order:', error);
+    throw new Error('Error updating order');
   }
 }
 
-// Function to fetch the default address
+// API endpoint to update order
+app.post('/api/orders/update', async (req, res) => {
+  const { orderNumber, awbNumber } = req.body;
+  
+  try {
+    const session = res.locals.shopify.session;  // Ensure session is available in the request
+    await updateOrderNoteWithAWB(session, orderNumber, awbNumber);
+    res.status(200).send('Order updated successfully');
+  } catch (error) {
+    res.status(500).send('Error updating order');
+  }
+});
+
+// Function to call the updateOrder API
+async function updateOrder(orderNumber, awbNumber) {
+  try {
+    const response = await fetch('/api/orders/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        orderNumber,
+        awbNumber
+      }),
+    });
+
+    if (response.ok) {
+      console.log('Order updated successfully');
+    } else {
+      console.error('Error updating order:', await response.text());
+    }
+  } catch (error) {
+    console.error('Error making request:', error);
+  }
+}
+
+
 async function fetchDefaultAddress() {
   const url = "https://demo.jeebly.com/app/get_address?client_key=fa618e51da171e489db355986c6dfc7c";
 
