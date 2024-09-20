@@ -800,7 +800,7 @@ async function processWebhookData(payload) {
 
   // Extract data from the webhook payload
   const description = payload?.line_items?.[0]?.title || "Default description";
-  const weight = (payload?.line_items?.[0]?.grams || 1000); 
+  const weight = Math.round(payload?.line_items?.[0]?.grams || 1000); 
   const codAmount = parseFloat(payload?.total_price) || 0;
   const pieces = payload?.line_items?.length || 1;
   const dropoffName = payload?.shipping_address?.name || "Unknown";
@@ -891,7 +891,7 @@ async function createShipment({
     destination_address_building_name: "building_name",
     destination_address_area: selectedArea,
     destination_address_landmark: "landmark",
-    destination_address_city: selectedCity,
+    destination_address_city: selectedCity || "no city found",
     destination_address_type: "Normal",
     pickup_date: pickupDate||"2024-09-12"
   });
