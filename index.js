@@ -792,6 +792,7 @@ async function processWebhookData(payload) {
 
   // Fetch the default address from the get_address API
   const defaultAddress = await fetchDefaultAddress();
+  const getConfigure = await fetchconfigureData();
 
   if (!defaultAddress) {
     console.error("No default address found. Shipment creation aborted.");
@@ -823,7 +824,8 @@ async function processWebhookData(payload) {
     paymentType,
     pickupDate,
     defaultAddress,
-    orderNumber
+    orderNumber,
+    getConfigure
   });
 
   // Call the createShipment function with the extracted data
@@ -839,7 +841,8 @@ async function processWebhookData(payload) {
     pickupDate,
     paymentType,
     defaultAddress,
-    orderNumber
+    orderNumber,
+    getConfigure
   });
 }
 
@@ -856,14 +859,15 @@ async function createShipment({
   paymentType,
   defaultAddress,
   orderNumber,
-  pickupDate
+  pickupDate,
+  getConfigure
 }) {
   // const url = "https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c";
   const url = "https://demo.jeebly.com/app/create_shipment?client_key=fa618e51da171e489db355986c6dfc7c";
   const body = JSON.stringify({
     client_key: "fa618e51da171e489db355986c6dfc7c",
-    delivery_type: "Next Day",
-    load_type: "Non-document",
+    delivery_type: getConfigure.service_type||"Next Day",
+    load_type: getConfigure.courier_type||"Non-document",
     consignment_type: "FORWARD",
     description: description,
     weight: "1000"|| weight,
@@ -1020,6 +1024,47 @@ async function fetchDefaultAddress() {
   }
   return null;
 }
+async function fetchconfigureData() {
+  const url = "https://demo.jeebly.com/app/get_configuration?client_key=fa618e51da171e489db355986c6dfc7c";
+
+  console.log("Fetching configuration data:", url);
+
+  try {
+    const response = await fetch(url, { method: "GET" });
+    console.log(`Get Configure API Response Status: ${response.status}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Configuration API Response Body:", data);
+
+    // Check for the success flag and extract the configuration details
+    if (data && data.success === "true") {
+      const serviceType = data.service_type;
+      const courierType = data.courier_type;
+      const differentPieces = data.different_pieces;
+
+      console.log("Service Type:", serviceType);
+      console.log("Courier Type:", courierType);
+      console.log("Different Pieces:", differentPieces);
+
+      return {
+        serviceType,
+        courierType,
+        differentPieces,
+      };
+    } else {
+      console.error("Unexpected data format in configuration response:", data);
+    }
+  } catch (error) {
+    console.error("Error fetching configuration data:", error);
+  }
+
+  return null;
+}
+
 
 // Endpoint to get the latest webhook data
 app.get('/api/webhooks/latest', (_req, res) => {
