@@ -863,14 +863,14 @@ async function createShipment({
   getConfigure
 }) {
   // const url = "https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c";
-  const url = "https://demo.jeebly.com/app/create_shipment?client_key=fa618e51da171e489db355986c6dfc7c";
+  const url = "https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c";
   const body = JSON.stringify({
     client_key: "fa618e51da171e489db355986c6dfc7c",
     delivery_type: getConfigure.service_type||"Next Day",
     load_type: getConfigure.courier_type||"Non-document",
     consignment_type: "FORWARD",
     description: description,
-    weight: "1000"|| weight,
+    weight: weight || "1000",
     payment_type: paymentType,
     cod_amount:"0",
     num_pieces: pieces,
