@@ -846,12 +846,6 @@ async function processWebhookData(payload) {
   });
 }
 
-if (!clientKey) {
-  console.error("Client key is missing. Shipment creation aborted.");
-  return;
-}
-
-
 // Function to call the bookshipment API
 async function createShipment({
   description,
@@ -872,7 +866,7 @@ async function createShipment({
   // const url = "https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c";
   const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c`;
   const body = JSON.stringify({
-    client_key: clientKey,
+    client_key: "fa618e51da171e489db355986c6dfc7c",
     delivery_type: getConfigure.service_type||"Next Day",
     load_type: getConfigure.courier_type||"Non-document",
     consignment_type: "FORWARD",
@@ -1110,11 +1104,6 @@ app.get("/api/orders/all", async (_req, res) => {
   }
 });
 
-app.use(shopify.cspHeaders());
-app.use(serveStatic(STATIC_PATH, { index: false }));
-
-
-// Endpoint to receive clientKey and store it
 app.post('/api/gettoken', (req, res) => {
   const { clientKey: receivedClientKey } = req.body;
 
@@ -1129,6 +1118,9 @@ app.post('/api/gettoken', (req, res) => {
 
   return res.status(200).json({ success: true, message: 'clientKey received and stored' });
 });
+
+app.use(shopify.cspHeaders());
+app.use(serveStatic(STATIC_PATH, { index: false }));
 
 app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
   return res
