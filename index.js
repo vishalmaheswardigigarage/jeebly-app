@@ -846,6 +846,12 @@ async function processWebhookData(payload) {
   });
 }
 
+if (!clientKey) {
+  console.error("Client key is missing. Shipment creation aborted.");
+  return;
+}
+
+
 // Function to call the bookshipment API
 async function createShipment({
   description,
@@ -1076,21 +1082,6 @@ app.get('/api/webhooks/latest', (_req, res) => {
   }
 });
 
-// Endpoint to receive clientKey
-app.post('/api/gettoken', (req, res) => {
-  const { clientKey } = req.body;
-
-  if (!clientKey) {
-    return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
-  }
-
-  // Now you can use the clientKey for further processing
-  console.log('Received clientKey:', clientKey);
-
-  // Perform any necessary operations with the clientKey
-
-  res.status(200).json({ success: true, message: 'ClientKey received' });
-});
 
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
@@ -1121,6 +1112,23 @@ app.get("/api/orders/all", async (_req, res) => {
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
+
+
+// Endpoint to receive clientKey and store it
+app.post('/api/gettoken', (req, res) => {
+  const { clientKey: receivedClientKey } = req.body;
+
+  if (!receivedClientKey) {
+    return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
+  }
+
+  // Store the clientKey globally
+  clientKey = receivedClientKey;
+
+  console.log("Received and stored clientKey:", clientKey);
+
+  return res.status(200).json({ success: true, message: 'clientKey received and stored' });
+});
 
 app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
   return res
