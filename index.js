@@ -866,7 +866,7 @@ async function createShipment({
   // const url = "https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c";
   const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c`;
   const body = JSON.stringify({
-    client_key: "fa618e51da171e489db355986c6dfc7c",
+    client_key: clientKey,
     delivery_type: getConfigure.service_type||"Next Day",
     load_type: getConfigure.courier_type||"Non-document",
     consignment_type: "FORWARD",
@@ -1074,6 +1074,22 @@ app.get('/api/webhooks/latest', (_req, res) => {
   } else {
     return res.status(204).json({ success: false, message: 'No webhook data available' });
   }
+});
+
+// Endpoint to receive clientKey
+app.post('/api/gettoken', (req, res) => {
+  const { clientKey } = req.body;
+
+  if (!clientKey) {
+    return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
+  }
+
+  // Now you can use the clientKey for further processing
+  console.log('Received clientKey:', clientKey);
+
+  // Perform any necessary operations with the clientKey
+
+  res.status(200).json({ success: true, message: 'ClientKey received' });
 });
 
 // Set up Shopify authentication and webhook handling
