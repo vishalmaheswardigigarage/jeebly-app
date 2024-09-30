@@ -952,45 +952,45 @@ async function updateOrderNoteWithAWB(session, orderNumber, awbNumber) {
 }
 
 // API endpoint to update order note
-app.post('/api/orders/update', async (req, res) => {
-  const { orderNumber, awbNumber } = req.body;
+// app.post('/api/orders/update', async (req, res) => {
+//   const { orderNumber, awbNumber } = req.body;
 
-  try {
-    const session = res.locals.shopify.session;  // Ensure session is available in the request
-    if (!session) throw new Error("Session not found");
+//   try {
+//     const session = res.locals.shopify.session;  // Ensure session is available in the request
+//     if (!session) throw new Error("Session not found");
 
-    await updateOrderNoteWithAWB(session, orderNumber, awbNumber);
-    res.status(200).send('Order updated successfully');
-  } catch (error) {
-    console.error('Error updating order:', error);
-    res.status(500).send('Error updating order');
-  }
-});
+//     await updateOrderNoteWithAWB(session, orderNumber, awbNumber);
+//     res.status(200).send('Order updated successfully');
+//   } catch (error) {
+//     console.error('Error updating order:', error);
+//     res.status(500).send('Error updating order');
+//   }
+// });
 
 // Function to call the updateOrder API
-async function updateOrder(orderNumber, awbNumber) {
-  try {
-    const response = await fetch('/api/orders/update', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        orderNumber,
-        awbNumber
-      }),
-    });
+// async function updateOrder(orderNumber, awbNumber) {
+//   try {
+//     const response = await fetch('/api/orders/update', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         orderNumber,
+//         awbNumber
+//       }),
+//     });
 
-    if (response.ok) {
-      console.log('Order updated successfully');
-    } else {
-      const errorText = await response.text();
-      console.error('Error updating order:', errorText);
-    }
-  } catch (error) {
-    console.error('Error making request:', error);
-  }
-}
+//     if (response.ok) {
+//       console.log('Order updated successfully');
+//     } else {
+//       const errorText = await response.text();
+//       console.error('Error updating order:', errorText);
+//     }
+//   } catch (error) {
+//     console.error('Error making request:', error);
+//   }
+// }
 
 
 async function fetchDefaultAddress() {
