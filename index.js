@@ -1104,30 +1104,7 @@ app.get("/api/orders/all", async (_req, res) => {
   }
 });
 
-// app.post('/api/gettoken', (req, res) => {
-//   const { clientKey: receivedClientKey } = req.body;
-
-//   if (!receivedClientKey) {
-//     return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
-//   }
-
-//   // Store the clientKey globally
-//   clientKey = receivedClientKey;
-
-//   console.log("Received and stored clientKey:", clientKey);
-
-//   return res.status(200).json({ success: true, message: 'clientKey received and stored' });
-// });
-
-
-// Middleware function that you want to execute after 8 seconds
-const delayedMiddleware = (req, res, next) => {
-  console.log("Delayed middleware executed");
-  // Perform some logic here
-  next(); // Continue to the next middleware or route handler
-};
-
-app.post('/api/gettoken', (req, res, next) => {
+app.post('/api/gettoken', (req, res) => {
   const { clientKey: receivedClientKey } = req.body;
 
   if (!receivedClientKey) {
@@ -1139,27 +1116,8 @@ app.post('/api/gettoken', (req, res, next) => {
 
   console.log("Received and stored clientKey:", clientKey);
 
-  // Call the delayed middleware after 8000 milliseconds (8 seconds)
-  setTimeout(() => {
-    delayedMiddleware(req, res, next); // Call the middleware after 8 seconds
-  }, 8000);
+  return res.status(200).json({ success: true, message: 'clientKey received and stored' });
 });
-
-// Another route or final handler if needed
-app.use((req, res) => {
-  return res.status(200).json({ success: true, message: 'clientKey received, stored, and delayed middleware executed' });
-});
-
-
-
-
-
-
-
-
-
-
-
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
