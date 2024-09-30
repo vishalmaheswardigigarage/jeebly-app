@@ -1103,6 +1103,7 @@ app.get("/api/orders/all", async (_req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
+let clientKey = null;
 
 app.post('/api/gettoken', (req, res) => {
   const { clientKey: receivedClientKey } = req.body;
