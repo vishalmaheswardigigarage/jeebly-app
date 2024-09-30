@@ -864,7 +864,7 @@ async function createShipment({
 }) {
 
   // const url = "https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c";
-  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c`;
+  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${clientKey}`;
   const body = JSON.stringify({
     client_key: clientKey,
     delivery_type: getConfigure.service_type||"Next Day",
@@ -994,7 +994,7 @@ async function updateOrder(orderNumber, awbNumber) {
 
 
 async function fetchDefaultAddress() {
-  const url = "https://demo.jeebly.com/app/get_address?client_key=fa618e51da171e489db355986c6dfc7c";
+  const url = `https://demo.jeebly.com/app/get_address?client_key=${clientKey}`;
 
   console.log("Fetching default address from:", url);
 
@@ -1026,7 +1026,7 @@ async function fetchDefaultAddress() {
   return null;
 }
 async function fetchconfigureData() {
-  const url = "https://demo.jeebly.com/app/get_configuration?client_key=fa618e51da171e489db355986c6dfc7c";
+  const url = `https://demo.jeebly.com/app/get_configuration?client_key=${clientKey}`;
 
   console.log("Fetching configuration data:", url);
 
