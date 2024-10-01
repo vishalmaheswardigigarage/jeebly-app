@@ -738,7 +738,7 @@ const loadClientKeyFromFile = () => {
 
 
 app.post('/api/gettoken', (req, res) => {
-
+  try {
     const { clientKey: receivedClientKey } = req.body;
 
     // Validate if clientKey is present
@@ -752,7 +752,10 @@ app.post('/api/gettoken', (req, res) => {
 
     // Return success response
     return res.status(200).json({ success: true, message: 'clientKey received and stored' });
-  
+  } catch (error) {
+    console.error("Error in /api/gettoken:", error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
 });
 
 // API to retrieve clientKey when needed (e.g., order creation)
