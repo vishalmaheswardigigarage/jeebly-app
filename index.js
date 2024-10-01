@@ -702,12 +702,34 @@ import shopify from "./shopify.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 import { join } from "path";
 import { readFileSync } from "fs";
+import fs from 'fs';
+import path from 'path';
+
 import fetch from 'node-fetch';
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3001",
   10
 );
+
+const filePath = path.join(path.resolve(), 'clientKey.txt');
+
+// Utility function to save the clientKey to a file
+const saveClientKeyToFile = (clientKey) => {
+  fs.writeFileSync(filePath, clientKey, { encoding: 'utf-8' });
+};
+
+// Utility function to load the clientKey from the file
+const loadClientKeyFromFile = () => {
+  if (fs.existsSync(filePath)) {
+    return fs.readFileSync(filePath, { encoding: 'utf-8' });
+  }
+  return null;
+};
+
+// Store the clientKey in memory after loading from file (if available)
+let clientKey = loadClientKeyFromFile();
+
 
 const STATIC_PATH =
   process.env.NODE_ENV === "production"
@@ -1103,21 +1125,44 @@ app.get("/api/orders/all", async (_req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
-let clientKey = null;
+
+
+// app.post('/api/gettoken', (req, res) => {
+//   const { clientKey: receivedClientKey } = req.body;
+
+//   if (!receivedClientKey) {
+//     return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
+//   }
+
+//   // Store the clientKey globally
+//   clientKey = receivedClientKey;
+
+//   console.log("Received and stored clientKey:", clientKey);
+
+//   return res.status(200).json({ success: true, message: 'clientKey received and stored' });
+// });
+
 
 app.post('/api/gettoken', (req, res) => {
-  const { clientKey: receivedClientKey } = req.body;
+  try {
+    const { clientKey: receivedClientKey } = req.body;
 
-  if (!receivedClientKey) {
-    return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
+    // Validate if clientKey is present
+    if (!receivedClientKey) {
+      return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
+    }
+
+    // Store the clientKey both in memory and in the file
+    clientKey = receivedClientKey;
+    saveClientKeyToFile(clientKey);
+    console.log("Received and stored clientKey:", clientKey);
+
+    // Return success response
+    return res.status(200).json({ success: true, message: 'clientKey received and stored' });
+  } catch (error) {
+    console.error("Error in /api/gettoken:", error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
-
-  // Store the clientKey globally
-  clientKey = receivedClientKey;
-
-  console.log("Received and stored clientKey:", clientKey);
-
-  return res.status(200).json({ success: true, message: 'clientKey received and stored' });
 });
 
 app.use(shopify.cspHeaders());
