@@ -702,9 +702,6 @@ import shopify from "./shopify.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 import { join } from "path";
 import { readFileSync } from "fs";
-import fs from 'fs';
-import path from 'path';
-
 import fetch from 'node-fetch';
 
 const PORT = parseInt(
@@ -712,7 +709,16 @@ const PORT = parseInt(
   10
 );
 
+const STATIC_PATH =
+  process.env.NODE_ENV === "production"
+    ? `${process.cwd()}/dist/`
+    : `${process.cwd()}/dist/`;
+
+const app = express();
+
+
 const filePath = path.join(path.resolve(), 'clientKey.txt');
+
 
 // Utility function to save the clientKey to a file
 const saveClientKeyToFile = (clientKey) => {
@@ -726,17 +732,6 @@ const loadClientKeyFromFile = () => {
   }
   return null;
 };
-
-// Store the clientKey in memory after loading from file (if available)
-let clientKey = loadClientKeyFromFile();
-
-
-const STATIC_PATH =
-  process.env.NODE_ENV === "production"
-    ? `${process.cwd()}/dist/`
-    : `${process.cwd()}/dist/`;
-
-const app = express();
 
 // Middleware to capture raw body for HMAC verification
 app.use(express.json({
@@ -766,6 +761,8 @@ function verifyShopifyWebhook(req) {
 
   return isValid;
 }
+
+
 
 // Webhook endpoint
 let payload = null;
@@ -867,6 +864,46 @@ async function processWebhookData(payload) {
     getConfigure
   });
 }
+// API to receive and store clientKey
+app.post('/api/gettoken', (req, res) => {
+  try {
+    const { clientKey: receivedClientKey } = req.body;
+
+    // Validate if clientKey is present
+    if (!receivedClientKey) {
+      return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
+    }
+
+    // Store the clientKey both in memory and in the file
+    saveClientKeyToFile(receivedClientKey);
+    console.log("Received and stored clientKey:", receivedClientKey);
+
+    // Return success response
+    return res.status(200).json({ success: true, message: 'clientKey received and stored' });
+  } catch (error) {
+    console.error("Error in /api/gettoken:", error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
+// API to retrieve clientKey when needed (e.g., order creation)
+app.get('/api/getclientkey', (req, res) => {
+  try {
+    const storedClientKey = loadClientKeyFromFile();
+
+    // If clientKey is not found in the file, return an error
+    if (!storedClientKey) {
+      return res.status(404).json({ success: false, message: 'clientKey not found' });
+    }
+
+    console.log("Retrieved clientKey:", storedClientKey);
+    return res.status(200).json({ success: true, clientKey: storedClientKey });
+  } catch (error) {
+    console.error("Error in /api/getclientkey:", error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
 
 // Function to call the bookshipment API
 async function createShipment({
@@ -886,9 +923,9 @@ async function createShipment({
 }) {
 
   // const url = "https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c";
-  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${clientKey}`;
+  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c`;
   const body = JSON.stringify({
-    client_key: clientKey,
+    client_key: "fa618e51da171e489db355986c6dfc7c",
     delivery_type: getConfigure.service_type||"Next Day",
     load_type: getConfigure.courier_type||"Non-document",
     consignment_type: "FORWARD",
@@ -956,22 +993,22 @@ async function createShipment({
 }
 
 // Function to update the order note with AWB number in Shopify
-async function updateOrderNoteWithAWB(session, orderNumber, awbNumber) {
-  try {
-    const order = new shopify.rest.Order({ session });
-    order.id = orderNumber;
-    order.note = `AWB Number: ${awbNumber}`;
+// async function updateOrderNoteWithAWB(session, orderNumber, awbNumber) {
+//   try {
+//     const order = new shopify.rest.Order({ session });
+//     order.id = orderNumber;
+//     order.note = `AWB Number: ${awbNumber}`;
 
-    await order.save({
-      update: true,
-    });
+//     await order.save({
+//       update: true,
+//     });
 
-    console.log(`Order ${orderNumber} updated with AWB: ${awbNumber}`);
-  } catch (error) {
-    console.error(`Error updating order ${orderNumber}:`, error);
-    throw new Error('Error updating order');
-  }
-}
+//     console.log(`Order ${orderNumber} updated with AWB: ${awbNumber}`);
+//   } catch (error) {
+//     console.error(`Error updating order ${orderNumber}:`, error);
+//     throw new Error('Error updating order');
+//   }
+// }
 
 // API endpoint to update order note
 // app.post('/api/orders/update', async (req, res) => {
@@ -1016,7 +1053,7 @@ async function updateOrderNoteWithAWB(session, orderNumber, awbNumber) {
 
 
 async function fetchDefaultAddress() {
-  const url = `https://demo.jeebly.com/app/get_address?client_key=${clientKey}`;
+  const url = "https://demo.jeebly.com/app/get_address?client_key=fa618e51da171e489db355986c6dfc7c";
 
   console.log("Fetching default address from:", url);
 
@@ -1048,7 +1085,7 @@ async function fetchDefaultAddress() {
   return null;
 }
 async function fetchconfigureData() {
-  const url = `https://demo.jeebly.com/app/get_configuration?client_key=${clientKey}`;
+  const url = "https://demo.jeebly.com/app/get_configuration?client_key=fa618e51da171e489db355986c6dfc7c";
 
   console.log("Fetching configuration data:", url);
 
@@ -1098,7 +1135,6 @@ app.get('/api/webhooks/latest', (_req, res) => {
   }
 });
 
-
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
@@ -1123,45 +1159,6 @@ app.get("/api/orders/all", async (_req, res) => {
   } catch (error) {
     console.error('Error fetching orders:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-  }
-});
-
-
-// app.post('/api/gettoken', (req, res) => {
-//   const { clientKey: receivedClientKey } = req.body;
-
-//   if (!receivedClientKey) {
-//     return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
-//   }
-
-//   // Store the clientKey globally
-//   clientKey = receivedClientKey;
-
-//   console.log("Received and stored clientKey:", clientKey);
-
-//   return res.status(200).json({ success: true, message: 'clientKey received and stored' });
-// });
-
-
-app.post('/api/gettoken', (req, res) => {
-  try {
-    const { clientKey: receivedClientKey } = req.body;
-
-    // Validate if clientKey is present
-    if (!receivedClientKey) {
-      return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
-    }
-
-    // Store the clientKey both in memory and in the file
-    clientKey = receivedClientKey;
-    saveClientKeyToFile(clientKey);
-    console.log("Received and stored clientKey:", clientKey);
-
-    // Return success response
-    return res.status(200).json({ success: true, message: 'clientKey received and stored' });
-  } catch (error) {
-    console.error("Error in /api/gettoken:", error);
-    return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
 
