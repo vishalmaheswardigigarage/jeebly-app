@@ -867,45 +867,7 @@ async function processWebhookData(payload) {
     getConfigure
   });
 }
-// API to receive and store clientKey
-app.post('/api/gettoken', (req, res) => {
-  try {
-    const { clientKey: receivedClientKey } = req.body;
 
-    // Validate if clientKey is present
-    if (!receivedClientKey) {
-      return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
-    }
-
-    // Store the clientKey both in memory and in the file
-    saveClientKeyToFile(receivedClientKey);
-    console.log("Received and stored clientKey:", receivedClientKey);
-
-    // Return success response
-    return res.status(200).json({ success: true, message: 'clientKey received and stored' });
-  } catch (error) {
-    console.error("Error in /api/gettoken:", error);
-    return res.status(500).json({ success: false, message: 'Internal Server Error' });
-  }
-});
-
-// API to retrieve clientKey when needed (e.g., order creation)
-app.get('/api/getclientkey', (req, res) => {
-  try {
-    const storedClientKey = loadClientKeyFromFile();
-
-    // If clientKey is not found in the file, return an error
-    if (!storedClientKey) {
-      return res.status(404).json({ success: false, message: 'clientKey not found' });
-    }
-
-    console.log("Retrieved clientKey:", storedClientKey);
-    return res.status(200).json({ success: true, clientKey: storedClientKey });
-  } catch (error) {
-    console.error("Error in /api/getclientkey:", error);
-    return res.status(500).json({ success: false, message: 'Internal Server Error' });
-  }
-});
 
 
 // Function to call the bookshipment API
@@ -1060,6 +1022,45 @@ async function createShipment({
 //   }
 // }
 
+// API to receive and store clientKey
+app.post('/api/gettoken', (req, res) => {
+  try {
+    const { clientKey: receivedClientKey } = req.body;
+
+    // Validate if clientKey is present
+    if (!receivedClientKey) {
+      return res.status(400).json({ success: false, message: 'Missing clientKey in request body' });
+    }
+
+    // Store the clientKey both in memory and in the file
+    saveClientKeyToFile(receivedClientKey);
+    console.log("Received and stored clientKey:", receivedClientKey);
+
+    // Return success response
+    return res.status(200).json({ success: true, message: 'clientKey received and stored' });
+  } catch (error) {
+    console.error("Error in /api/gettoken:", error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
+// API to retrieve clientKey when needed (e.g., order creation)
+app.get('/api/getclientkey', (req, res) => {
+  try {
+    const storedClientKey = loadClientKeyFromFile();
+
+    // If clientKey is not found in the file, return an error
+    if (!storedClientKey) {
+      return res.status(404).json({ success: false, message: 'clientKey not found' });
+    }
+
+    console.log("Retrieved clientKey:", storedClientKey);
+    return res.status(200).json({ success: true, clientKey: storedClientKey });
+  } catch (error) {
+    console.error("Error in /api/getclientkey:", error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
 
 async function fetchDefaultAddress() {
   const storedClientKey = loadClientKeyFromFile();
