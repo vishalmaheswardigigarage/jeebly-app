@@ -703,6 +703,9 @@ import PrivacyWebhookHandlers from "./privacy.js";
 import { join } from "path";
 import { readFileSync } from "fs";
 import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
+
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3001",
@@ -922,8 +925,14 @@ async function createShipment({
   getConfigure
 }) {
 
+  const storedClientKey = loadClientKeyFromFile();
+  if (!storedClientKey) {
+    console.error("No client key found. Aborting shipment creation.");
+    return;
+  }
+
   // const url = "https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c";
-  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=fa618e51da171e489db355986c6dfc7c`;
+  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${storedClientKey}`;
   const body = JSON.stringify({
     client_key: "fa618e51da171e489db355986c6dfc7c",
     delivery_type: getConfigure.service_type||"Next Day",
@@ -1053,7 +1062,12 @@ async function createShipment({
 
 
 async function fetchDefaultAddress() {
-  const url = "https://demo.jeebly.com/app/get_address?client_key=fa618e51da171e489db355986c6dfc7c";
+  const storedClientKey = loadClientKeyFromFile();
+  if (!storedClientKey) {
+    console.error("No client key found for fetching the default address.");
+    return null;
+  }
+  const url = `https://demo.jeebly.com/app/get_address?client_key=${storedClientKey}`;
 
   console.log("Fetching default address from:", url);
 
@@ -1085,7 +1099,12 @@ async function fetchDefaultAddress() {
   return null;
 }
 async function fetchconfigureData() {
-  const url = "https://demo.jeebly.com/app/get_configuration?client_key=fa618e51da171e489db355986c6dfc7c";
+  const storedClientKey = loadClientKeyFromFile();
+  if (!storedClientKey) {
+    console.error("No client key found for fetching the default address.");
+    return null;
+  }
+  const url = `https://demo.jeebly.com/app/get_configuration?client_key=${storedClientKey}`;
 
   console.log("Fetching configuration data:", url);
 
