@@ -165,6 +165,19 @@ function verifyShopifyWebhook(req) {
   return generatedHash === hmac;
 }
 
+
+app.get("/api/shop/all", async (_req, res) => {
+  try {
+    const shopData = await shopify.api.rest.Shop.all({
+      session: res.locals.shopify.session,
+    });
+    res.status(200).json({ success: true, shopData });
+  } catch (error) {
+    console.error('Error fetching shopdata:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+  }
+});
+
 // Webhook endpoint
 let payload = null;
 
@@ -359,17 +372,7 @@ app.get("/api/orders/all", async (_req, res) => {
   }
 });
 
-app.get("/api/shop/all", async (_req, res) => {
-  try {
-    const shopData = await shopify.api.rest.Shop.all({
-      session: res.locals.shopify.session,
-    });
-    res.status(200).json({ success: true, shopData });
-  } catch (error) {
-    console.error('Error fetching shopdata:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-  }
-});
+
 
 
 app.use(shopify.cspHeaders());
