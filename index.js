@@ -173,7 +173,7 @@ app.get("/api/shop/all", async (_req, res) => {
     const shopData = await shopify.api.rest.Shop.all({
       session: res.locals.shopify.session,
     });
-    res.status(200).json({ success: true, shopData });
+    res.status(200).json({ success: true, data:shopData });
   } catch (error) {
     console.error('Error fetching shopdata:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
