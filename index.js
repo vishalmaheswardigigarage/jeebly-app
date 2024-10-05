@@ -446,41 +446,7 @@ app.use(express.json({
 
 let clientKey = null;
 
-// Fetch and store the clientKey
-async function fetchClientKey() {
-  try {
-    const shopData = await shopify.api.rest.Shop.all({
-      session: res.locals.shopify.session,
-    });
-    clientKey = shopData.data.data[0]?.id;
-    return clientKey;
-  } catch (error) {
-    console.error('Error fetching client key:', error);
-    return null;
-  }
-}
 
-
-// Middleware to ensure clientKey is available before processing requests
-app.use(async (_req, res, next) => {
-  if (!clientKey) {
-    clientKey = await fetchClientKey();
-    if (!clientKey) {
-      return res.status(500).json({ success: false, message: 'Client key could not be fetched' });
-    }
-  }
-  next();
-});
-
-
-// API to retrieve clientKey
-app.get('/api/getclientkey', (_req, res) => {
-  if (clientKey) {
-    res.status(200).json({ success: true, data: clientKey });
-  } else {
-    res.status(500).json({ success: false, message: 'Client key not found' });
-  }
-});
 
  // Function to verify the Shopify webhook HMAC
 function verifyShopifyWebhook(req) {
@@ -771,6 +737,42 @@ app.get("/api/shop/all", async (_req, res) => {
   } catch (error) {
     console.error('Error fetching shopdata:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+  }
+});
+
+// Fetch and store the clientKey..
+async function fetchClientKey() {
+  try {
+    const shopData = await shopify.api.rest.Shop.all({
+      session: res.locals.shopify.session,
+    });
+    clientKey = shopData.data.data[0]?.id;
+    return clientKey;
+  } catch (error) {
+    console.error('Error fetching client key:', error);
+    return null;
+  }
+}
+
+
+// Middleware to ensure clientKey is available before processing requests
+app.use(async (_req, res, next) => {
+  if (!clientKey) {
+    clientKey = await fetchClientKey();
+    if (!clientKey) {
+      return res.status(500).json({ success: false, message: 'Client key could not be fetched' });
+    }
+  }
+  next();
+});
+
+
+// API to retrieve clientKey
+app.get('/api/getclientkey', (_req, res) => {
+  if (clientKey) {
+    res.status(200).json({ success: true, data: clientKey });
+  } else {
+    res.status(500).json({ success: false, message: 'Client key not found' });
   }
 });
 
