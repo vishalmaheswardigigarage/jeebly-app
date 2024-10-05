@@ -491,7 +491,8 @@ async function processWebhookData(payload) {
 //   // Fetch the default address and configure data
   const [defaultAddress, getConfigure] = await Promise.all([
     fetchDefaultAddress(),
-    fetchConfigureData()
+    fetchConfigureData(),
+    fetchClientKey()
   ]);
 
   if (!defaultAddress) {
@@ -740,13 +741,15 @@ app.get("/api/shop/all", async (_req, res) => {
   }
 });
 
-// Fetch and store the clientKey..
+
+
+// Fetch and store the clientKey
 async function fetchClientKey() {
   try {
     const shopData = await shopify.api.rest.Shop.all({
       session: res.locals.shopify.session,
     });
-    clientKey = shopData.data.data[0]?.id;
+    clientKey = shopData[0]?.id;
     return clientKey;
   } catch (error) {
     console.error('Error fetching client key:', error);
@@ -754,27 +757,6 @@ async function fetchClientKey() {
   }
 }
 
-
-// Middleware to ensure clientKey is available before processing requests
-app.use(async (_req, res, next) => {
-  if (!clientKey) {
-    clientKey = await fetchClientKey();
-    if (!clientKey) {
-      return res.status(500).json({ success: false, message: 'Client key could not be fetched' });
-    }
-  }
-  next();
-});
-
-
-// API to retrieve clientKey
-app.get('/api/getclientkey', (_req, res) => {
-  if (clientKey) {
-    res.status(200).json({ success: true, data: clientKey });
-  } else {
-    res.status(500).json({ success: false, message: 'Client key not found' });
-  }
-});
 
 
 app.use(shopify.cspHeaders());
