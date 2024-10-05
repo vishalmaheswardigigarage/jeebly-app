@@ -153,24 +153,7 @@
 //   }
 // }));
 
-// // // API to retrieve clientKey when needed (e.g., order creation)
-// app.get('/api/getclientkey', async (_req, res) => {
-//   try {
-//     const shopData = await shopify.api.rest.Order.shop({
-//       session: res.locals.shopify.session,
-//     });
-//     const storedClientKey = shopData[0]?.id;
-//     console.log("Shop data fetched successfully.");
-//     res.status(200).json({ success: true, data: storedClientKey });
-//   } catch (error) {
-//     console.error('Error fetching orders:', error);
-//     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-//   }
-// });
-
-
-
-//  // Function to verify the Shopify webhook HMAC
+// // Function to verify the Shopify webhook HMAC
 // function verifyShopifyWebhook(req) {
 //   const hmac = req.headers['x-shopify-hmac-sha256'];
 //   if (!hmac) return false;  // Return false if HMAC is missing
@@ -187,7 +170,26 @@
 // // Webhook endpoint
 // let payload = null;
 
-// app.post('/api/webhooks/ordercreate', async (req, res) => {
+// // Middleware to get the shop ID
+// const getShopId = async (req, res, next) => {
+//   try {
+//     const session = res.locals.shopify.session;
+
+//     // Fetch shop data from Shopify API
+//     const shopData = await shopify.api.rest.Shop.all({ session });
+//     const shopId = shopData[0]?.id;
+
+//     if (!shopId) throw new Error("Shop ID not found");
+
+//     req.shopId = shopId; // Attach the shopId to the request object
+//     next();
+//   } catch (error) {
+//     console.error("Error getting shop ID:", error);
+//     res.status(500).json({ error: "Failed to retrieve shop ID" });
+//   }
+// };
+
+// app.post('/api/webhooks/ordercreate', getShopId, async (req, res) => {
 //   if (!verifyShopifyWebhook(req)) {
 //     return res.status(401).json({ success: false, message: 'Unauthorized' }); // Return 401 if the HMAC validation fails
 //   }
@@ -195,10 +197,11 @@
 //   try {
 //     payload = req.body;
 
+//     const clientKey = await fetchClientKey(req.shopId);
 
 //     // Process the payload asynchronously and send it to the bookshipment API
-//     setImmediate(() => processWebhookData(payload));
-//     console.log("Webhook received:", payload);
+//     setImmediate(() => processWebhookData(payload,clientKey));
+//     console.log("Webhook received:", payload,clientKey);
 
 //     res.status(200).json({ success: true, message: 'Webhook received' });
 //   } catch (error) {
@@ -207,48 +210,28 @@
 //   }
 // });
 
-// async function processWebhookData(payload) {
-//   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
+// // Function to process webhook data and call createShipment
+// async function processWebhookData(payload,clientKey) {
+//   console.log("Processing webhook data:", payload);
 
-// //   // Fetch the default address and configure data
-//   const [defaultAddress, getConfigure] = await Promise.all([
-//     fetchDefaultAddress(),
-//     fetchConfigureData()
-//   ]);
+//   // Fetch the default address from the get_address API
+//   const defaultAddress = await fetchDefaultAddress();
 
 //   if (!defaultAddress) {
 //     console.error("No default address found. Shipment creation aborted.");
 //     return;
 //   }
 
-//   // Extract data from the webhook payload
+//   // Example of extracting data from the webhook payload
 //   const description = payload?.line_items?.[0]?.title || "Default description";
-//   const weight = Math.round(payload?.line_items?.[0]?.grams || 1000);
-//   const codAmount = parseFloat(payload?.total_price) || 0;
+//   const weight = payload?.line_items?.[0]?.grams || 1; // Default weight
+//   const codAmount = payload?.total_price || 0;
 //   const pieces = payload?.line_items?.length || 1;
 //   const dropoffName = payload?.shipping_address?.name || "Unknown";
 //   const dropoffPhone = payload?.shipping_address?.phone || "Unknown";
 //   const selectedArea = payload?.shipping_address?.address1 || "Unknown Area";
-//   const selectedCity = payload?.shipping_address?.city || "Dubai";
-//   const orderNumber = payload?.order_number || "#001";
+//   const selectedCity = payload?.shipping_address?.city || "Unknown City";
 //   const paymentType = payload?.financial_status === "paid" ? "Prepaid" : "COD";
-//   const pickupDate = getNextDayDate();
-
-//   console.log("Extracted Data for Shipment:", {
-//     description,
-//     weight,
-//     codAmount,
-//     pieces,
-//     dropoffName,
-//     dropoffPhone,
-//     selectedArea,
-//     selectedCity,
-//     paymentType,
-//     pickupDate,
-//     defaultAddress,
-//     orderNumber,
-//     getConfigure
-//   });
 
 //   // Call the createShipment function with the extracted data
 //   await createShipment({
@@ -260,13 +243,12 @@
 //     dropoffPhone,
 //     selectedArea,
 //     selectedCity,
-//     pickupDate,
 //     paymentType,
-//     defaultAddress,
-//     orderNumber,
-//     getConfigure
+//    clientKey
 //   });
-//   // // Function to call the bookshipment API
+// }
+
+// // Function to call the bookshipment API
 // async function createShipment({
 //   description,
 //   weight,
@@ -278,63 +260,44 @@
 //   selectedCity,
 //   paymentType,
 //   defaultAddress,
-//   orderNumber,
-//   pickupDate,
-//   getConfigure
+//   clientKey
 // }) {
-//   // Fetch the stored client key from the API
-//   let storedClientKey;
-//   try {
-//     const response = await fetch('/api/getclientkey');
-//     if (!response.ok) {
-//       throw new Error(`Failed to fetch client key: ${response.statusText}`);
-//     }
-//     const data = await response.json();
-//     storedClientKey = data.data; // Assuming the key is in the 'data' field
-//   } catch (error) {
-//     console.error("Error fetching client key:", error);
-//     return; // Abort shipment creation if fetching the key fails
-//   }
-
-//   if (!storedClientKey) {
-//     console.error("No client key found. Aborting shipment creation.");
-//     return;
-//   }
-
-
-//   const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${storedClientKey}`;
+//   const url = `https://demo.jeebly.com/app/create_shipment?client_key=${clientKey}`;
 //   const body = JSON.stringify({
-//     delivery_type: getConfigure.service_type || "Next Day",
-//     load_type: getConfigure.courier_type || "Non-document",
+//     client_key: clientKey,
+//     delivery_type: "Next Day",
+//     load_type: "Non-document",
 //     consignment_type: "FORWARD",
 //     description: description,
-//     weight: weight || "1000",
+//     weight: weight,
 //     payment_type: paymentType,
-//     cod_amount: "0",
+//     cod_amount: codAmount,
 //     num_pieces: pieces,
-//     customer_reference_number: orderNumber || "#001",
-//     origin_address_name: defaultAddress.addr_area,
+//     customer_reference_number: "1034",
+//     origin_address_name:"shekhar",
 //     origin_address_mob_no_country_code: "971",
-//     origin_address_mobile_number: defaultAddress.addr_mobile_number,
-//     origin_address_house_no: defaultAddress.addr_house_no,
-//     origin_address_building_name: defaultAddress.addr_building_name,
-//     origin_address_area: defaultAddress.addr_area,
-//     origin_address_landmark: defaultAddress.addr_landmark,
+//     origin_address_mobile_number: "+236332521411",
+//     origin_address_alt_ph_country_code: "2522",
+//     origin_address_alternate_phone: "3631422252141",
+//     origin_address_house_no: "50",
+//     origin_address_building_name: "test building",
+//     origin_address_area: "test area",
+//     origin_address_landmark: "name",
 //     origin_address_city: "Dubai",
 //     origin_address_type: "Normal",
 //     destination_address_name: dropoffName,
 //     destination_address_mob_no_country_code: "971",
-//     destination_address_mobile_number: dropoffPhone || "569996547444",
+//     destination_address_mobile_number: dropoffPhone,
+//     destination_details_alt_ph_country_code: "+11",
+//     destination_details_alternate_phone: "569996547444",
 //     destination_address_house_no: "43",
 //     destination_address_building_name: "building_name",
 //     destination_address_area: selectedArea,
 //     destination_address_landmark: "landmark",
-//     destination_address_city: selectedCity || "Dubai",
+//     destination_address_city: selectedCity,
 //     destination_address_type: "Normal",
-//     pickup_date: pickupDate || "2024-09-12"
+//     pickup_date: "2024-09-10"
 //   });
-
-//   console.log("Creating shipment with the following payload:");
 
 //   try {
 //     const response = await fetch(url, {
@@ -343,167 +306,44 @@
 //       body: body
 //     });
 
-//     console.log(`Shipment API Response Status: ${response.status}`);
-
-//     const responseBody = await response.json();
-//     console.log("Shipment API Response Body:", responseBody);
-
 //     if (response.ok) {
+//       const responseBody = await response.json();
 //       console.log("Shipment created successfully:", responseBody);
-//       const awbNumber = responseBody["AWB No"];
-    
-//       if (awbNumber) {
-//         updateOrderNoteWithAWB(orderNumber, awbNumber);
-//         await updateOrder(orderNumber, awbNumber);
-//       } else {
-//         console.error("AWB number is missing in the shipment response.");
-//       }
 //     } else {
+//       const responseBody = await response.json();
 //       console.error("Failed to create shipment:", responseBody);
 //     }
 //   } catch (error) {
-//     console.error("Network error while creating shipment:", error);
+//     console.error("Network error:", error);
 //   }
 // }
-// }
-
-
-// // Function to process webhook data and call createShipment
-// // async function processWebhookData(payload) {
-// //   console.log("Processing webhook data:", payload);
-
-// //   //   // Fetch the default address and configure data
-// //   const [defaultAddress, getConfigure] = await Promise.all([
-// //     fetchDefaultAddress(),
-// //     fetchConfigureData()
-// //   ]);
-
-// //   // Fetch the default address from the get_address API
-// //   const defaultAddress = await fetchDefaultAddress();
-
-// //   if (!defaultAddress) {
-// //     console.error("No default address found. Shipment creation aborted.");
-// //     return;
-// //   }
-
-// //   // Example of extracting data from the webhook payload
-// //   const description = payload?.line_items?.[0]?.title || "Default description";
-// //   const weight = payload?.line_items?.[0]?.grams || 1; // Default weight
-// //   const codAmount = payload?.total_price || 0;
-// //   const pieces = payload?.line_items?.length || 1;
-// //   const dropoffName = payload?.shipping_address?.name || "Unknown";
-// //   const dropoffPhone = payload?.shipping_address?.phone || "Unknown";
-// //   const selectedArea = payload?.shipping_address?.address1 || "Unknown Area";
-// //   const selectedCity = payload?.shipping_address?.city || "Unknown City";
-// //   const paymentType = payload?.financial_status === "paid" ? "Prepaid" : "COD";
-
-// //   // Call the createShipment function with the extracted data
-// //   await createShipment({
-// //     description,
-// //     weight,
-// //     codAmount,
-// //     pieces,
-// //     dropoffName,
-// //     dropoffPhone,
-// //     selectedArea,
-// //     selectedCity,
-// //     paymentType,
-// //   });
-// // }
-
 
 // // Function to fetch the default address
-// async function fetchDefaultAddress() {
-//   // Fetch the stored client key from the API
-// let storedClientKey;
-// try {
-//   const response = await fetch('/api/getclientkey');
-//   if (!response.ok) {
-//     throw new Error(`Failed to fetch client key: ${response.statusText}`);
-//   }
-//   const data = await response.json();
-//   storedClientKey = data.data; // Assuming the key is in the 'data' field
-// } catch (error) {
-//   console.error("Error fetching client key:", error);
-//   return; // Abort shipment creation if fetching the key fails
-// }
-
-// if (!storedClientKey) {
-//   console.error("No client key found. Aborting shipment creation.");
-//   return;
-// }
-// const url = `https://demo.jeebly.com/app/get_address?client_key=${storedClientKey}`;
-
-// console.log("Fetching default address from:", url);
-
-// try {
-//   const response = await fetch(url, { method: "GET" });
-//   console.log(`Default Address API Response Status: ${response.status}`);
-
-//   if (!response.ok) {
-//     throw new Error(`HTTP error! status: ${response.status}`);
-//   }
-
-//   const data = await response.json();
-//   console.log("Default Address API Response Body:", data);
-
-//   if (data && data.success === "true" && Array.isArray(data.address)) {
-//     const defaultAddr = data.address.find(addr => addr.default_address === "1");
-//     if (defaultAddr) {
-//       console.log("Default address found:", defaultAddr);
-//       return defaultAddr;
-//     } else {
-//       console.error("No default address found in the response.");
-//       return null;
-//     }
-//   }
-// } catch (error) {
-//   console.error("Error fetching default address:", error);
-// }
-// return null; // Return null if no default address is found or if an error occurs
-// }
-// // // Fetch configuration data from the get_configuration API
-// async function fetchConfigureData() {
-//   // Fetch the stored client key from the API
-//   let storedClientKey;
+// async function fetchDefaultAddress(clientKey) {
+//   const url = `https://demo.jeebly.com/app/get_address?client_key=${clientKey}`;
+  
 //   try {
-//     const response = await fetch('/api/getclientkey');
+//     const response = await fetch(url, { method: "GET" });
 //     if (!response.ok) {
-//       throw new Error(`Failed to fetch client key: ${response.statusText}`);
+//       throw new Error(`HTTP error! status: ${response.status}`);
 //     }
+
 //     const data = await response.json();
-//     storedClientKey = data.data; // Assuming the key is in the 'data' field
+//     if (data && data.success === "true" && Array.isArray(data.address)) {
+//       const defaultAddr = data.address.find(addr => addr.default_address === "1");
+//       if (defaultAddr) {
+//         console.log("Default address found:", defaultAddr);
+//         return defaultAddr;
+//       } else {
+//         console.log("No default address found");
+//       }
+//     } else {
+//       console.error("Unexpected data format:", data);
+//     }
 //   } catch (error) {
-//     console.error("Error fetching client key:", error);
-//     return; // Abort shipment creation if fetching the key fails
+//     console.error("Error fetching default address:", error);
 //   }
-
-//   if (!storedClientKey) {
-//     console.error("No client key found. Aborting shipment creation.");
-//     return;
-//   }
-// const url = `https://demo.jeebly.com/app/get_configuration?client_key=${storedClientKey}`;
-
-// console.log("Fetching configuration data from:", url);
-
-// try {
-//   const response = await fetch(url, { method: "GET" });
-//   console.log(`Configuration API Response Status: ${response.status}`);
-
-//   if (!response.ok) {
-//     throw new Error(`HTTP error! status: ${response.status}`);
-//   }
-
-//   const data = await response.json();
-//   console.log("Configuration API Response Body:", data);
-
-//   if (data && data.success) {
-//     return data; // Return configuration data if successful
-//   }
-// } catch (error) {
-//   console.error("Error fetching configuration data:", error);
-// }
-// return null; // Return null if no configuration data is found or if an error occurs
+//   return null;
 // }
 
 // // Endpoint to get the latest webhook data
@@ -572,9 +412,7 @@
 
 
 
-
-
-// test Code --2
+// test Code
 
 import crypto from 'crypto';
 import express from "express";
@@ -639,15 +477,18 @@ function verifyShopifyWebhook(req) {
 
 // Webhook endpoint
 let payload = null;
+
 app.post('/api/webhooks/ordercreate', async (req, res) => {
   if (!verifyShopifyWebhook(req)) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
+    return res.status(401).json({ success: false, message: 'Unauthorized' }); // Return 401 if the HMAC validation fails
   }
 
   try {
     payload = req.body;
-    // Process the payload asynchronously and send it to the createShipment API
-    setImmediate(() => processWebhookData(payload));
+
+
+    // Process the payload asynchronously and send it to the bookshipment API
+       await processWebhookData(payload);
     console.log("Webhook received:", payload);
 
     res.status(200).json({ success: true, message: 'Webhook received' });
@@ -660,7 +501,7 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 async function processWebhookData(payload) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
 
-  // Fetch the default address and configure data
+//   // Fetch the default address and configure data
   const [defaultAddress, getConfigure] = await Promise.all([
     fetchDefaultAddress(),
     fetchConfigureData()
@@ -716,8 +557,7 @@ async function processWebhookData(payload) {
     orderNumber,
     getConfigure
   });
-}
-
+  // // Function to call the bookshipment API
 async function createShipment({
   description,
   weight,
@@ -741,16 +581,17 @@ async function createShipment({
       throw new Error(`Failed to fetch client key: ${response.statusText}`);
     }
     const data = await response.json();
-    storedClientKey = data.data;
+    storedClientKey = data.data; // Assuming the key is in the 'data' field
   } catch (error) {
     console.error("Error fetching client key:", error);
-    return;
+    return; // Abort shipment creation if fetching the key fails
   }
 
   if (!storedClientKey) {
     console.error("No client key found. Aborting shipment creation.");
     return;
   }
+
 
   const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${storedClientKey}`;
   const body = JSON.stringify({
@@ -760,7 +601,7 @@ async function createShipment({
     description: description,
     weight: weight || "1000",
     payment_type: paymentType,
-    cod_amount: codAmount || "0",
+    cod_amount: "0",
     num_pieces: pieces,
     customer_reference_number: orderNumber || "#001",
     origin_address_name: defaultAddress.addr_area,
@@ -771,6 +612,7 @@ async function createShipment({
     origin_address_area: defaultAddress.addr_area,
     origin_address_landmark: defaultAddress.addr_landmark,
     origin_address_city: "Dubai",
+    origin_address_type: "Normal",
     destination_address_name: dropoffName,
     destination_address_mob_no_country_code: "971",
     destination_address_mobile_number: dropoffPhone || "569996547444",
@@ -779,10 +621,11 @@ async function createShipment({
     destination_address_area: selectedArea,
     destination_address_landmark: "landmark",
     destination_address_city: selectedCity || "Dubai",
+    destination_address_type: "Normal",
     pickup_date: pickupDate || "2024-09-12"
   });
 
-  console.log("Creating shipment with the following payload:", body);
+  console.log("Creating shipment with the following payload:");
 
   try {
     const response = await fetch(url, {
@@ -792,6 +635,7 @@ async function createShipment({
     });
 
     console.log(`Shipment API Response Status: ${response.status}`);
+
     const responseBody = await response.json();
     console.log("Shipment API Response Body:", responseBody);
 
@@ -800,6 +644,7 @@ async function createShipment({
       const awbNumber = responseBody["AWB No"];
     
       if (awbNumber) {
+        updateOrderNoteWithAWB(orderNumber, awbNumber);
         await updateOrder(orderNumber, awbNumber);
       } else {
         console.error("AWB number is missing in the shipment response.");
@@ -811,9 +656,61 @@ async function createShipment({
     console.error("Network error while creating shipment:", error);
   }
 }
+}
 
 // Function to fetch the default address
 async function fetchDefaultAddress() {
+  // Fetch the stored client key from the API
+let storedClientKey;
+try {
+  const response = await fetch('/api/getclientkey');
+  if (!response.ok) {
+    throw new Error(`Failed to fetch client key: ${response.statusText}`);
+  }
+  const data = await response.json();
+  storedClientKey = data.data; // Assuming the key is in the 'data' field
+} catch (error) {
+  console.error("Error fetching client key:", error);
+  return; // Abort shipment creation if fetching the key fails
+}
+
+if (!storedClientKey) {
+  console.error("No client key found. Aborting shipment creation.");
+  return;
+}
+const url = `https://demo.jeebly.com/app/get_address?client_key=${storedClientKey}`;
+
+console.log("Fetching default address from:", url);
+
+try {
+  const response = await fetch(url, { method: "GET" });
+  console.log(`Default Address API Response Status: ${response.status}`);
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  console.log("Default Address API Response Body:", data);
+
+  if (data && data.success === "true" && Array.isArray(data.address)) {
+    const defaultAddr = data.address.find(addr => addr.default_address === "1");
+    if (defaultAddr) {
+      console.log("Default address found:", defaultAddr);
+      return defaultAddr;
+    } else {
+      console.error("No default address found in the response.");
+      return null;
+    }
+  }
+} catch (error) {
+  console.error("Error fetching default address:", error);
+}
+return null; // Return null if no default address is found or if an error occurs
+}
+// // Fetch configuration data from the get_configuration API
+async function fetchConfigureData() {
+  // Fetch the stored client key from the API
   let storedClientKey;
   try {
     const response = await fetch('/api/getclientkey');
@@ -821,69 +718,40 @@ async function fetchDefaultAddress() {
       throw new Error(`Failed to fetch client key: ${response.statusText}`);
     }
     const data = await response.json();
-    storedClientKey = data.data;
+    storedClientKey = data.data; // Assuming the key is in the 'data' field
   } catch (error) {
     console.error("Error fetching client key:", error);
-    return;
+    return; // Abort shipment creation if fetching the key fails
   }
 
   if (!storedClientKey) {
     console.error("No client key found. Aborting shipment creation.");
     return;
   }
+const url = `https://demo.jeebly.com/app/get_configuration?client_key=${storedClientKey}`;
 
-  const url = `https://demo.jeebly.com/app/get_address?client_key=${storedClientKey}`;
-  console.log("Fetching default address from:", url);
+console.log("Fetching configuration data from:", url);
 
-  try {
-    const response = await fetch(url, { method: "GET" });
-    console.log(`Default Address API Response Status: ${response.status}`);
+try {
+  const response = await fetch(url, { method: "GET" });
+  console.log(`Configuration API Response Status: ${response.status}`);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log("Default Address API Response Body:", data);
-
-    if (data && data.success === "true" && Array.isArray(data.address)) {
-      const defaultAddr = data.address.find(addr => addr.default_address === "1");
-      if (defaultAddr) {
-        console.log("Default address found:", defaultAddr);
-        return defaultAddr;
-      } else {
-        console.error("No default address found in the response.");
-        return null;
-      }
-    }
-  } catch (error) {
-    console.error("Error fetching default address:", error);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
-  return null;
+
+  const data = await response.json();
+  console.log("Configuration API Response Body:", data);
+
+  if (data && data.success) {
+    return data; // Return configuration data if successful
+  }
+} catch (error) {
+  console.error("Error fetching configuration data:", error);
+}
+return null; // Return null if no configuration data is found or if an error occurs
 }
 
-// Function to fetch configuration data
-async function fetchConfigureData() {
-  const url = `https://demo.jeebly.com/app/get_configuration`;
-  try {
-    const response = await fetch(url, { method: "GET" });
-    console.log(`Configuration API Response Status: ${response.status}`);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log("Configuration API Response Body:", data);
-
-    if (data && data.success === "true" && data.configuration) {
-      return data.configuration;
-    }
-  } catch (error) {
-    console.error("Error fetching configuration:", error);
-  }
-  return null;
-}
 // Endpoint to get the latest webhook data
 app.get('/api/webhooks/latest', (_req, res) => {
   if (payload) {
@@ -947,8 +815,3 @@ app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-
-
-
-
