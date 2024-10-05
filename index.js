@@ -487,6 +487,7 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 
 async function processWebhookData(payload) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
+  
 
 //   // Fetch the default address and configure data
   const [defaultAddress, getConfigure] = await Promise.all([
@@ -743,19 +744,19 @@ app.get("/api/shop/all", async (_req, res) => {
 
 
 // Fetch and store the clientKey
-async function fetchClientKey(session) {
+async function fetchClientKey(_req,res) {
+  console.log("fetchclientid function")
   try {
     const shopData = await shopify.api.rest.Shop.all({
-      session: session,
+      session: res.locals.shopify.session,
     });
-    console.log('Shop Data:', shopData); // Log the data or handle it as needed
+    console.log('fetch clientid Shop Data:', shopData); // Log the data or handle it as needed
     return { success: true, data: shopData };
   } catch (error) {
     console.error('Error fetching shop data:', error);
     return { success: false, message: 'Internal Server Error', error: error.message };
   }
 }
-
 
 
 app.use(shopify.cspHeaders());
