@@ -462,7 +462,7 @@ async function fetchClientKey() {
 
 
 // Middleware to ensure clientKey is available before processing requests
-app.use(async (req, res, next) => {
+app.use(async (_req, res, next) => {
   if (!clientKey) {
     clientKey = await fetchClientKey();
     if (!clientKey) {
@@ -474,16 +474,13 @@ app.use(async (req, res, next) => {
 
 
 // API to retrieve clientKey
-app.get('/api/getclientkey', (req, res) => {
+app.get('/api/getclientkey', (_req, res) => {
   if (clientKey) {
     res.status(200).json({ success: true, data: clientKey });
   } else {
     res.status(500).json({ success: false, message: 'Client key not found' });
   }
 });
-
-
-
 
  // Function to verify the Shopify webhook HMAC
 function verifyShopifyWebhook(req) {
