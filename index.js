@@ -444,20 +444,44 @@ app.use(express.json({
   }
 }));
 
-// // API to retrieve clientKey when needed (e.g., order creation)
-app.get('/api/getclientkey', async (_req, res) => {
+let clientKey = null;
+
+// Fetch and store the clientKey
+async function fetchClientKey() {
   try {
-    const shopData = await shopify.api.rest.Order.shop({
+    const shopData = await shopify.api.rest.Shop.all({
       session: res.locals.shopify.session,
     });
-    const storedClientKey = shopData[0]?.id;
-    console.log("Shop data fetched successfully.");
-    res.status(200).json({ success: true, data: storedClientKey });
+    clientKey = shopData.data.data[0]?.id;
+    return clientKey;
   } catch (error) {
-    console.error('Error fetching orders:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+    console.error('Error fetching client key:', error);
+    return null;
+  }
+}
+
+
+// Middleware to ensure clientKey is available before processing requests
+app.use(async (req, res, next) => {
+  if (!clientKey) {
+    clientKey = await fetchClientKey();
+    if (!clientKey) {
+      return res.status(500).json({ success: false, message: 'Client key could not be fetched' });
+    }
+  }
+  next();
+});
+
+
+// API to retrieve clientKey
+app.get('/api/getclientkey', (req, res) => {
+  if (clientKey) {
+    res.status(200).json({ success: true, data: clientKey });
+  } else {
+    res.status(500).json({ success: false, message: 'Client key not found' });
   }
 });
+
 
 
 
@@ -574,26 +598,10 @@ async function createShipment({
   getConfigure
 }) {
   // Fetch the stored client key from the API
-  let storedClientKey;
-  try {
-    const response = await fetch('/api/getclientkey');
-    if (!response.ok) {
-      throw new Error(`Failed to fetch client key: ${response.statusText}`);
-    }
-    const data = await response.json();
-    storedClientKey = data.data; // Assuming the key is in the 'data' field
-  } catch (error) {
-    console.error("Error fetching client key:", error);
-    return; // Abort shipment creation if fetching the key fails
-  }
-
-  if (!storedClientKey) {
-    console.error("No client key found. Aborting shipment creation.");
-    return;
-  }
+  
 
 
-  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${storedClientKey}`;
+  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${clientKey}`;
   const body = JSON.stringify({
     delivery_type: getConfigure.service_type || "Next Day",
     load_type: getConfigure.courier_type || "Non-document",
@@ -661,24 +669,8 @@ async function createShipment({
 // Function to fetch the default address
 async function fetchDefaultAddress() {
   // Fetch the stored client key from the API
-let storedClientKey;
-try {
-  const response = await fetch('/api/getclientkey');
-  if (!response.ok) {
-    throw new Error(`Failed to fetch client key: ${response.statusText}`);
-  }
-  const data = await response.json();
-  storedClientKey = data.data; // Assuming the key is in the 'data' field
-} catch (error) {
-  console.error("Error fetching client key:", error);
-  return; // Abort shipment creation if fetching the key fails
-}
 
-if (!storedClientKey) {
-  console.error("No client key found. Aborting shipment creation.");
-  return;
-}
-const url = `https://demo.jeebly.com/app/get_address?client_key=${storedClientKey}`;
+const url = `https://demo.jeebly.com/app/get_address?client_key=${clientKey}`;
 
 console.log("Fetching default address from:", url);
 
@@ -711,24 +703,8 @@ return null; // Return null if no default address is found or if an error occurs
 // // Fetch configuration data from the get_configuration API
 async function fetchConfigureData() {
   // Fetch the stored client key from the API
-  let storedClientKey;
-  try {
-    const response = await fetch('/api/getclientkey');
-    if (!response.ok) {
-      throw new Error(`Failed to fetch client key: ${response.statusText}`);
-    }
-    const data = await response.json();
-    storedClientKey = data.data; // Assuming the key is in the 'data' field
-  } catch (error) {
-    console.error("Error fetching client key:", error);
-    return; // Abort shipment creation if fetching the key fails
-  }
 
-  if (!storedClientKey) {
-    console.error("No client key found. Aborting shipment creation.");
-    return;
-  }
-const url = `https://demo.jeebly.com/app/get_configuration?client_key=${storedClientKey}`;
+const url = `https://demo.jeebly.com/app/get_configuration?client_key=${clientKey}`;
 
 console.log("Fetching configuration data from:", url);
 
