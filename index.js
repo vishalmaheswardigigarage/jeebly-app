@@ -130,7 +130,10 @@ import serveStatic from "serve-static";
 import shopify from "./shopify.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 import { join } from "path";
+import { readFileSync } from "fs";
+import dotenv from 'dotenv';
 
+dotenv.config();
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3001",
