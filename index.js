@@ -666,11 +666,11 @@ try {
 return null; // Return null if no default address is found or if an error occurs
 }
 // // Fetch configuration data from the get_configuration API
-
+app.use("/api/*", shopify.validateAuthenticatedSession());
 // Fetch and store the clientKey
 app.get("/api/shop/all", async (_req, res) => {
   try {
-    const shopData = await shopify.api.rest.Shop.all({
+    const shopData = await shopify.api.rest.order.all({
       session: res.locals.shopify.session,
     });
     res.status(200).json({ success: true, data:shopData });
