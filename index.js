@@ -749,8 +749,7 @@ async function fetchClientKey() {
     const shopData = await shopify.api.rest.Shop.all({
       session: res.locals.shopify.session,
     });
-    clientKey = shopData[0]?.id;
-    return clientKey;
+    res.status(200).json({ success: true, data:shopData });
   } catch (error) {
     console.error('Error fetching client key:', error);
     return null;
