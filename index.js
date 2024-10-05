@@ -742,20 +742,18 @@ app.get("/api/shop/all", async (_req, res) => {
 });
 
 
-
 // Fetch and store the clientKey
-async function fetchClientKey() {
-  app.get("/api/shop/all", async (_req, res) => {
-    try {
-      const shopData = await shopify.api.rest.Shop.all({
-        session: res.locals.shopify.session,
-      });
-      res.status(200).json({ success: true, data:shopData });
-    } catch (error) {
-      console.error('Error fetching shopdata:', error);
-      res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-    }
-  });
+async function fetchClientKey(session) {
+  try {
+    const shopData = await shopify.api.rest.Shop.all({
+      session: session,
+    });
+    console.log('Shop Data:', shopData); // Log the data or handle it as needed
+    return { success: true, data: shopData };
+  } catch (error) {
+    console.error('Error fetching shop data:', error);
+    return { success: false, message: 'Internal Server Error', error: error.message };
+  }
 }
 
 
