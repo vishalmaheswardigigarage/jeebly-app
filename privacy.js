@@ -267,6 +267,18 @@ const PrivacyWebhookHandlers = {
     deliveryMethod: DeliveryMethod.Http,
     callbackUrl: '/api/webhooks/ordercreate',
     callback: async (topic, shop, body, webhookId) => {
+     
+        try {
+          const response = await fetch('/api/shop/all'); // Call the API you just defined
+          if (!response.ok) {
+            throw new Error('Failed to fetch shop data');
+          }
+      
+          const shopData = await response.json();
+          console.log("Fetched shop data:", shopData);
+        } catch (error) {
+          console.error("Error fetching shop data:", error);
+        }
       const payload = JSON.parse(body);
       recentWebhookPayload.ORDERS_CREATE = payload;
       console.log('Orders Create Webhook:', payload);

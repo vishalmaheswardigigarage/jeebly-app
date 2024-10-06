@@ -445,6 +445,8 @@ app.use(express.json({
 }));
 
 
+let shopId = '';
+
 
 
  // Function to verify the Shopify webhook HMAC
@@ -496,18 +498,7 @@ async function processWebhookData(payload) {
     fetchConfigureData()
   ]);
 
-    try {
-      const response = await fetch('/api/shop/all'); 
-      if (!response.ok) {
-        throw new Error('Failed to fetch shop data');
-      }
-  
-      const shopData = await response.json();
-      console.log("Fetched shop data:", shopData);
-    } catch (error) {
-      console.error("Error fetching shop data:", error);
-    }
-  }
+  console.log("shop ID data",shopId);
   
   if (!defaultAddress) {
     console.error("No default address found. Shipment creation aborted.");
@@ -644,6 +635,7 @@ async function createShipment({
     console.error("Network error while creating shipment:", error);
   }
 }
+}
 
 // Function to fetch the default address
 async function fetchDefaultAddress() {
@@ -723,7 +715,7 @@ app.get('/api/webhooks/latest', (_req, res) => {
   }
 });
 
-// Set up Shopify authentication and webhook handlil
+// Set up Shopify authentication and webhook handli
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
   shopify.config.auth.callbackPath,
@@ -760,7 +752,7 @@ app.get("/api/shop/all", async (_req, res) => {
     const shopData = await shopify.api.rest.Shop.all({
       session: res.locals.shopify.session,
     });
-    console.log(shopData);
+     shopId = shopData.data[0].id
     res.status(200).json({ success: true, data:shopData });
    
   } catch (error) {
@@ -768,6 +760,7 @@ app.get("/api/shop/all", async (_req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
+
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
