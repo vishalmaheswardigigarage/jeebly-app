@@ -489,7 +489,7 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
     console.log("Webhook received:", payload);
 
     // Process webhook data
-    await processWebhookData(payload);
+    await processWebhookData(payload,extractedShopId);
 
     res.status(200).json({ success: true, message: 'Webhook received' });
    
@@ -501,14 +501,14 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 
 
 
-async function processWebhookData(payload) {
+async function processWebhookData(payload,extractedShopId) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
 
 
 //   // Fetch the default address and configure dat.
   const [defaultAddress, getConfigure] = await Promise.all([
-    fetchDefaultAddress(),
-    fetchConfigureData()
+    fetchDefaultAddress(extractedShopId),
+    fetchConfigureData(extractedShopId)
   ]);
   
   if (!defaultAddress) {
@@ -528,6 +528,7 @@ async function processWebhookData(payload) {
   const orderNumber = payload?.order_number || "#001";
   const paymentType = payload?.financial_status === "paid" ? "Prepaid" : "COD";
   const pickupDate = getNextDayDate();
+  const clientKey = extractedShopId;
 
   console.log("Extracted Data for Shipment:", {
     description,
@@ -543,6 +544,7 @@ async function processWebhookData(payload) {
     defaultAddress,
     orderNumber,
     getConfigure,
+    clientKey
   });
 
   // Call the createShipment function with the extracted data
@@ -575,7 +577,8 @@ async function createShipment({
   defaultAddress,
   orderNumber,
   pickupDate,
-  getConfigure
+  getConfigure,
+  clientKey
 }) {
   // Fetch the stored client key from the API
   
@@ -583,7 +586,7 @@ async function createShipment({
 
   const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${clientKey}`;
   const body = JSON.stringify({
-    client_key:"88366711100",
+    client_key:clientKey,
     delivery_type: getConfigure.service_type || "Next Day",
     load_type: getConfigure.courier_type || "Non-document",
     consignment_type: "FORWARD",
@@ -648,7 +651,9 @@ async function createShipment({
 }
 
 // Function to fetch the default address
-async function fetchDefaultAddress() {
+async function fetchDefaultAddress(extractedShopId) {
+
+  const clientKey = extractedShopId;
   // Fetch the stored client key from the API
 
 const url = `https://demo.jeebly.com/app/get_address?client_key=${clientKey}`;
@@ -682,9 +687,9 @@ try {
 return null; // Return null if no default address is found or if an error occurs
 }
 // // Fetch configuration data from the get_configuration API
-async function fetchConfigureData() {
+async function fetchConfigureData(extractedShopId) {
   // Fetch the stored client key from the api
-
+  const clientKey = extractedShopId;
 const url = `https://demo.jeebly.com/app/get_configuration?client_key=${clientKey}`;
 
 console.log("Fetching configuration data from:", url);
