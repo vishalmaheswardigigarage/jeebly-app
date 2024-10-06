@@ -473,10 +473,19 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
+  // Retrieve shop domain from headers
+  const shopDomain = req.headers['x-shopify-shop-domain'];
+  console.log("Shop Domain:", shopDomain);
+
+  // Make an API call to Shopify to get shop details, including shop_id
+  const shopDetails = await fetchShopDetails(shopDomain);
+  const shopId = shopDetails.id;
+  console.log("Shop ID:", shopId);
+
   try {
     const payload = req.body;
-    console.log("webhook request data",req.query.shopid)
-    console.log("Webhook received:", payload);
+    // console.log("webhook request data",req.query.shopid)
+    console.log("Webhook received:", payload); 
 
     // Process webhook data
     await processWebhookData(payload);
@@ -489,6 +498,29 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
   }
 });
 
+// / Helper function to get shop details from Shopify
+
+async function fetchShopDetails(shopDomain) {
+  const shopifyAccessToken = process.env.SHOPIFY_API_SECRET;  // Ensure you have the correct access token
+  const apiVersion = '2024-07';  // Set the appropriate API version
+
+  const url = `https://${shopDomain}/admin/api/${apiVersion}/shop.json`;
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Shopify-Access-Token': shopifyAccessToken,  // Use the correct access token
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch shop details');
+  }
+
+  const data = await response.json();
+  return data.shop;  // The shop details will be in `data.shop`
+}
 
 async function processWebhookData(payload) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
