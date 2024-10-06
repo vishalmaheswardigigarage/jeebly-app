@@ -491,12 +491,25 @@ async function processWebhookData(payload) {
 
 
 //   // Fetch the default address and configure dat.
-  const [shopData,defaultAddress, getConfigure] = await Promise.all([
-    fetchShopData(),
+  const [defaultAddress, getConfigure] = await Promise.all([
     fetchDefaultAddress(),
     fetchConfigureData()
   ]);
-  console.log("shop id",shopData);
+
+    try {
+      const response = await fetch('/api/shop/all'); 
+      if (!response.ok) {
+        throw new Error('Failed to fetch shop data');
+      }
+  
+      const shopData = await response.json();
+      console.log("Fetched shop data:", shopData);
+      return shopData;
+    } catch (error) {
+      console.error("Error fetching shop data:", error);
+    }
+  }
+  
   if (!defaultAddress) {
     console.error("No default address found. Shipment creation aborted.");
     return;
@@ -668,7 +681,7 @@ try {
 }
 return null; // Return null if no default address is found or if an error occurs
 }
-// // Fetch configuration data from the get_configuration APi
+// // Fetch configuration data from the get_configuration API
 async function fetchConfigureData() {
   // Fetch the stored client key from the api
 
@@ -743,7 +756,7 @@ app.get("/api/orders/all", async (_req, res) => {
   }
 });
 
-async function fetchShopData() {
+
 app.get("/api/shop/all", async (_req, res) => {
   try {
     const shopData = await shopify.api.rest.Shop.all({
@@ -757,7 +770,6 @@ app.get("/api/shop/all", async (_req, res) => {
    return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
-}
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
