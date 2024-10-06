@@ -724,7 +724,7 @@ app.get('/api/webhooks/latest', (_req, res) => {
   }
 });
 
-// Set up Shopify authentication and webhook handli
+// Set up Shopify authentication and webhook handlil
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
   shopify.config.auth.callbackPath,
