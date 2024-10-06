@@ -567,7 +567,7 @@ async function createShipment({
   
 
 
-  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${clientKey}`;
+  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=88366711100`;
   const body = JSON.stringify({
     delivery_type: getConfigure.service_type || "Next Day",
     load_type: getConfigure.courier_type || "Non-document",
