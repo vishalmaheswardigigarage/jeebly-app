@@ -482,7 +482,7 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
     const orderStatusUrl = payload.order_status_url;
 
     // Use a regular expression to extract the shop ID from the URL
-    const shopIdMatch = orderStatusUrl.match(/https:\/\/(.+?)\.myshopify\.com/);
+    const shopIdMatch = orderStatusUrl.match(/\/(\d+)\/orders/);
     const extractedShopId = shopIdMatch ? shopIdMatch[1] : null; // Capturing group 1 contains the shop ID
 
     console.log("Extracted Shop ID:", extractedShopId);
