@@ -492,6 +492,7 @@ async function processWebhookData(payload) {
 
 //   // Fetch the default address and configure data
   const [defaultAddress, getConfigure] = await Promise.all([
+    fetchShopData(),
     fetchDefaultAddress(),
     fetchConfigureData(),
    
@@ -749,11 +750,27 @@ app.get("/api/shop/all", async (_req, res) => {
       session: res.locals.shopify.session,
     });
     res.status(200).json({ success: true, data:shopData });
+    console.log("shop data",shopData);
   } catch (error) {
     console.error('Error fetching shopdata:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
+
+async function fetchShopData() {
+  try {
+    const response = await fetch('/api/shop/all'); // Call the API you just defined
+    if (!response.ok) {
+      throw new Error('Failed to fetch shop data');
+    }
+
+    const shopData = await response.json();
+    console.log("Fetched shop data:", shopData);
+    return shopData;
+  } catch (error) {
+    console.error("Error fetching shop data:", error);
+  }
+}
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
