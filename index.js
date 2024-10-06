@@ -688,7 +688,7 @@ try {
   console.log("Configuration API Response Body:", data);
 
   if (data && data.success) {
-    return data; // Return configuration data if successful
+    return data; // Return configuration data if successf
   }
 } catch (error) {
   console.error("Error fetching configuration data:", error);
