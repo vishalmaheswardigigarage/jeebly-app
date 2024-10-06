@@ -475,7 +475,7 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 
   try {
     const payload = req.body;
-    console.log("webhook request data",req)
+    console.log("webhook request data",req.query.shopid)
     console.log("Webhook received:", payload);
 
     // Process webhook data
