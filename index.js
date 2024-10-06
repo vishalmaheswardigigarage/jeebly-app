@@ -492,9 +492,9 @@ async function processWebhookData(payload) {
 
 //   // Fetch the default address and configure data
   const [defaultAddress, getConfigure] = await Promise.all([
-    fetchShopData(),
+    // fetchShopData(),
     fetchDefaultAddress(),
-    fetchConfigureData(),
+    fetchConfigureData()
    
   ]);
 
@@ -725,7 +725,9 @@ app.post(
 
 );
 
+
 app.use("/api/*", shopify.validateAuthenticatedSession());
+
 
 app.get("/api/orders/all", async (_req, res) => {
   try {
@@ -756,21 +758,22 @@ app.get("/api/shop/all", async (_req, res) => {
 });
 
 
-const session = res.locals.shopify.session;
+// const session = res.locals.shopify.session;
 
-async function fetchShopData() {
+// async function fetchShopData() {
  
-  try {
-    const response = await shopify.api.rest.Shop.all({
-      session: session,
-    });
-    const responseBody = await response.json();
-    console.log("shop data", responseBody);
-  } catch (error) {
-    console.error('Error fetching shopdata:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-  }
-}
+//   try {
+//     const response = await shopify.api.rest.Shop.all({
+//       session: session,
+//     });
+//     const responseBody = await response.json();
+//     console.log("shop data", responseBody);
+//   } catch (error) {
+//     console.error('Error fetching shopdata:', error);
+//     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+//   }
+// }
+
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
