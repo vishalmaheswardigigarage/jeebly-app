@@ -474,6 +474,18 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
   }
 
   try {
+    const response = await fetch('/api/shop/all'); // Call the API you just defined
+    if (!response.ok) {
+      throw new Error('Failed to fetch shop data');
+    }
+
+    const shopData = await response.json();
+    console.log("Fetched shop data:", shopData);
+  } catch (error) {
+    console.error("Error fetching shop data:", error);
+  }
+
+  try {
     const payload = req.body;
     console.log("Webhook received:", payload);
 
