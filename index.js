@@ -463,6 +463,7 @@ function verifyShopifyWebhook(req) {
 
 // Webhook endpoint
 let payload = null;
+let clientKey = "88366711100";
 
 app.post('/api/webhooks/ordercreate', async (req, res) => {
   if (!verifyShopifyWebhook(req)) {
@@ -486,19 +487,6 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 
 async function processWebhookData(payload) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
-
-
-  app.get("/api/shop/all", async (_req, res) => {
-    try {
-      const shopData = await shopify.api.rest.Shop.all({
-        session: res.locals.shopify.session,
-      });
-      res.status(200).json({ success: true, data:shopData });
-    } catch (error) {
-      console.error('Error fetching shopdata:', error);
-      res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-    }
-  });
   
 
 //   // Fetch the default address and configure data
@@ -717,6 +705,18 @@ app.get('/api/webhooks/latest', (_req, res) => {
   }
 });
 
+app.get("/api/shop/all", async (_req, res) => {
+  try {
+    const shopData = await shopify.api.rest.Shop.all({
+      session: res.locals.shopify.session,
+    });
+    res.status(200).json({ success: true, data:shopData });
+  } catch (error) {
+    console.error('Error fetching shopdata:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+  }
+});
+
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
@@ -747,20 +747,7 @@ app.get("/api/orders/all", async (_req, res) => {
 });
 
 
-app.get("/api/shop/all", async (_req, res) => {
-  try {
-    const shopData = await shopify.api.rest.Shop.all({
-      session: res.locals.shopify.session,
-    });
-    res.status(200).json({ success: true, data:shopData });
-  } catch (error) {
-    console.error('Error fetching shopdata:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-  }
-});
 
-
-// Fetch and store the clientKey
 
 
 
