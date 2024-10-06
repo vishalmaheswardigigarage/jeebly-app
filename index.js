@@ -504,7 +504,6 @@ async function processWebhookData(payload) {
   
       const shopData = await response.json();
       console.log("Fetched shop data:", shopData);
-      return shopData;
     } catch (error) {
       console.error("Error fetching shop data:", error);
     }
