@@ -490,10 +490,11 @@ async function processWebhookData(payload) {
   
 
 //   // Fetch the default address and configure data
-  const [defaultAddress, getConfigure] = await Promise.all([
+  const [defaultAddress, getConfigure,clientKey] = await Promise.all([
+    fetchClientKey(),
     fetchDefaultAddress(),
     fetchConfigureData(),
-    fetchClientKey()
+   
   ]);
 
   if (!defaultAddress) {
