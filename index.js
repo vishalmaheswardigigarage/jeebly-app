@@ -749,6 +749,7 @@ app.get("/api/shop/all", async (_req, res) => {
     const shopData = await shopify.api.rest.Shop.all({
       session: res.locals.shopify.session,
     });
+    console.log(shopData);
    return  res.status(200).json({ success: true, data:shopData });
    
   } catch (error) {
