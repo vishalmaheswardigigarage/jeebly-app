@@ -466,7 +466,7 @@ function verifyShopifyWebhook(req) {
 
 // Webhook endpoint
 let payload = null;
-let clientKey = "88366711100";
+
 
 // Webhook handler
 app.post('/api/webhooks/ordercreate', async (req, res) => {
@@ -581,8 +581,7 @@ async function createShipment({
   clientKey
 }) {
   // Fetch the stored client key from the API
-  
- const clientKey = "88366711100";
+
 
   const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${clientKey}`;
   const body = JSON.stringify({
