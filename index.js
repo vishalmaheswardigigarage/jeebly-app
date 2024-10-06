@@ -473,7 +473,6 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
-  try {
     const response = await fetch('/api/shop/all'); // Call the API you just defined
     if (!response.ok) {
       throw new Error('Failed to fetch shop data');
@@ -481,9 +480,6 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 
     const shopData = await response.json();
     console.log("Fetched shop data:", shopData);
-  } catch (error) {
-    console.error("Error fetching shop data:", error);
-  }
 
   try {
     const payload = req.body;
@@ -509,8 +505,6 @@ async function processWebhookData(payload) {
     fetchDefaultAddress(),
     fetchConfigureData()
   ]);
-
-  console.log("shop ID data",shopId);
   
   if (!defaultAddress) {
     console.error("No default address found. Shipment creation aborted.");
