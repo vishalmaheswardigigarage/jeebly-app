@@ -468,14 +468,14 @@ let payload = null;
 let clientKey = "88366711100";
 
 // Webhook handler
-app.post('/api/webhooks/ordercreate', async (_req, res) => {
+app.post('/api/webhooks/ordercreate', async (req, res) => {
   if (!verifyShopifyWebhook(req)) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
   try {
     const payload = req.body;
-    console.log("webhook request data",_req)
+    console.log("webhook request data",req)
     console.log("Webhook received:", payload);
 
     // Process webhook data
