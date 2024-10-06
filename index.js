@@ -645,7 +645,6 @@ async function createShipment({
     console.error("Network error while creating shipment:", error);
   }
 }
-}
 
 // Function to fetch the default address
 async function fetchDefaultAddress() {
@@ -763,11 +762,11 @@ app.get("/api/shop/all", async (_req, res) => {
       session: res.locals.shopify.session,
     });
     console.log(shopData);
-   return  res.status(200).json({ success: true, data:shopData });
+    res.status(200).json({ success: true, data:shopData });
    
   } catch (error) {
     console.error('Error fetching shopdata:', error);
-   return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
 
