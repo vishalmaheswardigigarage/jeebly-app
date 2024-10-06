@@ -445,10 +445,6 @@ app.use(express.json({
 }));
 
 
-app.use("/api/*", shopify.validateAuthenticatedSession());
-
-let clientKey = null;
-
 
 
  // Function to verify the Shopify webhook HMAC
@@ -490,11 +486,23 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 
 async function processWebhookData(payload) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
+
+
+  app.get("/api/shop/all", async (_req, res) => {
+    try {
+      const shopData = await shopify.api.rest.Shop.all({
+        session: res.locals.shopify.session,
+      });
+      res.status(200).json({ success: true, data:shopData });
+    } catch (error) {
+      console.error('Error fetching shopdata:', error);
+      res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+    }
+  });
   
 
 //   // Fetch the default address and configure data
-  const [defaultAddress, getConfigure,clientKey] = await Promise.all([
-    fetchClientKey(),
+  const [defaultAddress, getConfigure] = await Promise.all([
     fetchDefaultAddress(),
     fetchConfigureData(),
    
@@ -635,19 +643,8 @@ async function createShipment({
 }
 }
 
-async function fetchClientKey() {
-  app.get("/api/shop/key", async (_req, res) => {
-    try {
-      const shopData = await shopify.api.rest.Shop.all({
-        session: res.locals.shopify.session,
-      });
-      res.status(200).json({ success: true, data:shopData });
-    } catch (error) {
-      console.error('Error fetching shopdata:', error);
-      res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-    }
-  });
-}
+
+
 
 // Function to fetch the default address
 async function fetchDefaultAddress() {
@@ -730,8 +727,10 @@ app.get(
 app.post(
   shopify.config.webhooks.path,
   shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
+
 );
 
+app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.get("/api/orders/all", async (_req, res) => {
   try {
