@@ -755,9 +755,10 @@ app.get("/api/shop/all", async (_req, res) => {
   }
 });
 
-const session = res.locals.shopify.session;
+
 
 async function fetchShopData() {
+  const session = res.locals.shopify.session;
   try {
     const response = await shopify.api.rest.Shop.all({
       session: session,
