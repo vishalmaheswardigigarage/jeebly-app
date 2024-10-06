@@ -492,7 +492,7 @@ async function processWebhookData(payload) {
 
 //   // Fetch the default address and configure data
   const [defaultAddress, getConfigure] = await Promise.all([
-    fetchShopData(),
+    fetchShopData()
     fetchDefaultAddress(),
     fetchConfigureData(),
    
@@ -619,12 +619,12 @@ async function createShipment({
       console.log("Shipment created successfully:", responseBody);
       const awbNumber = responseBody["AWB No"];
     
-      if (awbNumber) {
-        updateOrderNoteWithAWB(orderNumber, awbNumber);
-        await updateOrder(orderNumber, awbNumber);
-      } else {
-        console.error("AWB number is missing in the shipment response.");
-      }
+      // if (awbNumber) {
+      //   updateOrderNoteWithAWB(orderNumber, awbNumber);ss
+      //   await updateOrder(orderNumber, awbNumber);
+      // } else {
+      //   console.error("AWB number is missing in the shipment response.");
+      // }
     } else {
       console.error("Failed to create shipment:", responseBody);
     }
@@ -712,8 +712,6 @@ app.get('/api/webhooks/latest', (_req, res) => {
   }
 });
 
-
-
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
@@ -757,18 +755,18 @@ app.get("/api/shop/all", async (_req, res) => {
   }
 });
 
+const session = res.locals.shopify.session;
+
 async function fetchShopData() {
   try {
-    const response = await fetch('/api/shop/all'); // Call the API you just defined
-    if (!response.ok) {
-      throw new Error('Failed to fetch shop data');
-    }
-
-    const shopData = await response.json();
-    console.log("Fetched shop data:", shopData);
-    return shopData;
+    const response = await shopify.api.rest.Shop.all({
+      session: session,
+    });
+    const responseBody = await response.json();
+    console.log("shop data", responseBody);
   } catch (error) {
-    console.error("Error fetching shop data:", error);
+    console.error('Error fetching shopdata:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 }
 
