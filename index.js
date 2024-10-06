@@ -711,17 +711,7 @@ app.get('/api/webhooks/latest', (_req, res) => {
   }
 });
 
-app.get("/api/shop/all", async (_req, res) => {
-  try {
-    const shopData = await shopify.api.rest.Shop.all({
-      session: res.locals.shopify.session,
-    });
-    res.status(200).json({ success: true, data:shopData });
-  } catch (error) {
-    console.error('Error fetching shopdata:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-  }
-});
+
 
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
@@ -748,6 +738,19 @@ app.get("/api/orders/all", async (_req, res) => {
     console.log("order-data");
   } catch (error) {
     console.error('Error fetching orders:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+  }
+});
+
+
+app.get("/api/shop/all", async (_req, res) => {
+  try {
+    const shopData = await shopify.api.rest.Shop.all({
+      session: res.locals.shopify.session,
+    });
+    res.status(200).json({ success: true, data:shopData });
+  } catch (error) {
+    console.error('Error fetching shopdata:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
