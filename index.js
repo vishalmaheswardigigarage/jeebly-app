@@ -668,7 +668,7 @@ try {
 }
 return null; // Return null if no default address is found or if an error occurs
 }
-// // Fetch configuration data from the get_configuration API
+// // Fetch configuration data from the get_configuration APi
 async function fetchConfigureData() {
   // Fetch the stored client key from the api
 
