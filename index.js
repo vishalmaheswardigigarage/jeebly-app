@@ -565,10 +565,11 @@ async function createShipment({
 }) {
   // Fetch the stored client key from the API
   
+ const clientKey = "88366711100";
 
-
-  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=88366711100`;
+  const url = `https://demo.jeebly.com/app/create_shipment_webhook?client_key=${clientKey}`;
   const body = JSON.stringify({
+    client_key:"88366711100",
     delivery_type: getConfigure.service_type || "Next Day",
     load_type: getConfigure.courier_type || "Non-document",
     consignment_type: "FORWARD",
