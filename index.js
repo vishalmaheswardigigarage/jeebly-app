@@ -465,18 +465,18 @@ function verifyShopifyWebhook(req) {
 let payload = null;
 let clientKey = "88366711100";
 
+// Webhook handler
 app.post('/api/webhooks/ordercreate', async (req, res) => {
   if (!verifyShopifyWebhook(req)) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' }); // Return 401 if the HMAC validation fails
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
   try {
-    payload = req.body;
-
-
-    // Process the payload asynchronously and send it to the bookshipment API
-       await processWebhookData(payload);
+    const payload = req.body;
     console.log("Webhook received:", payload);
+
+    // Process webhook data
+    await processWebhookData(payload);
 
     res.status(200).json({ success: true, message: 'Webhook received' });
   } catch (error) {
@@ -484,6 +484,7 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
+
 
 async function processWebhookData(payload) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
@@ -631,9 +632,6 @@ async function createShipment({
 }
 }
 
-
-
-
 // Function to fetch the default address
 async function fetchDefaultAddress() {
   // Fetch the stored client key from the API
@@ -696,6 +694,13 @@ try {
 return null; // Return null if no configuration data is found or if an error occurs
 }
 
+// Utility function to get the next day's date in the required format
+function getNextDayDate() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+}
+
 // Endpoint to get the latest webhook data
 app.get('/api/webhooks/latest', (_req, res) => {
   if (payload) {
@@ -745,11 +750,6 @@ app.get("/api/orders/all", async (_req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
-
-
-
-
-
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
