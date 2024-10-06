@@ -486,17 +486,17 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 });
 
 
-async function processWebhookData(payload,session) {
+async function processWebhookData(payload) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
-  const shopData = await fetchShopData(session); // Pass session to fetchShopData
-  console.log("Shop data from webhook:", shopData);
+
 
 //   // Fetch the default address and configure data
-  const [defaultAddress, getConfigure] = await Promise.all([
+  const [shopData,defaultAddress, getConfigure] = await Promise.all([
+    fetchShopData(),
     fetchDefaultAddress(),
     fetchConfigureData()
   ]);
-
+  console.log(shopData.data.data[0].id);
   if (!defaultAddress) {
     console.error("No default address found. Shipment creation aborted.");
     return;
@@ -743,43 +743,19 @@ app.get("/api/orders/all", async (_req, res) => {
   }
 });
 
-
+async function fetchShopData() {
 app.get("/api/shop/all", async (_req, res) => {
   try {
     const shopData = await shopify.api.rest.Shop.all({
       session: res.locals.shopify.session,
     });
-    res.status(200).json({ success: true, data:shopData });
-    console.log("shop data",shopData);
+   return  res.status(200).json({ success: true, data:shopData });
+   
   } catch (error) {
     console.error('Error fetching shopdata:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+   return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
-
-app.get("/api/shop/id", async (req, res) => {
-  try {
-    const session = res.locals.shopify.session;
-    const shopData = await fetchShopData(session); // Pass session explicitly
-    res.status(200).json({ success: true, data: shopData });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-  }
-});
-
-
-
-async function fetchShopData(session) {
-  try {
-    const shopData = await shopify.api.rest.Shop.all({
-      session: session,
-    });
-    console.log("Fetched shop data:", shopData);
-    return shopData;
-  } catch (error) {
-    console.error("Error fetching shop data:", error);
-    throw new Error('Failed to fetch shop data');
-  }
 }
 
 app.use(shopify.cspHeaders());
