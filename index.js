@@ -486,13 +486,13 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
 });
 
 
-async function processWebhookData(payload) {
+async function processWebhookData(payload,session) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
-  
+  const shopData = await fetchShopData(session); // Pass session to fetchShopData
+  console.log("Shop data from webhook:", shopData);
 
 //   // Fetch the default address and configure data
-  const [defaultAddress, getConfigure,shopData] = await Promise.all([
-    fetchShopData(),
+  const [defaultAddress, getConfigure] = await Promise.all([
     fetchDefaultAddress(),
     fetchConfigureData()
   ]);
@@ -757,23 +757,30 @@ app.get("/api/shop/all", async (_req, res) => {
   }
 });
 
-
-
-
-async function fetchShopData() {
-  const session = res.locals.shopify.session;
+app.get("/api/shop/id", async (req, res) => {
   try {
-    const response = await shopify.api.rest.Shop.all({
-      session: session,
-    });
-    const responseBody = await response.json();
-    console.log("shop data", responseBody);
+    const session = res.locals.shopify.session;
+    const shopData = await fetchShopData(session); // Pass session explicitly
+    res.status(200).json({ success: true, data: shopData });
   } catch (error) {
-    console.error('Error fetching shopdata:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
-}
+});
 
+
+
+async function fetchShopData(session) {
+  try {
+    const shopData = await shopify.api.rest.Shop.all({
+      session: session,
+    });
+    console.log("Fetched shop data:", shopData);
+    return shopData;
+  } catch (error) {
+    console.error("Error fetching shop data:", error);
+    throw new Error('Failed to fetch shop data');
+  }
+}
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
