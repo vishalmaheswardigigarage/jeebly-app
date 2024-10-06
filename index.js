@@ -474,16 +474,18 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
- // Fetch shop data when the webhook is triggered
- const shopId = await shopData();
-
- if (shopId) {
-  console.log("Processing webhook with Shop ID:", shopId);
- }
 
   try {
     const payload = req.body;
     // console.log("webhook request data",req.query.shopid)
+
+    const orderStatusUrl = payload.order_status_url;
+
+    // Use a regular expression to extract the shop ID from the URL
+    const shopIdMatch = orderStatusUrl.match(/https:\/\/(.+?)\.myshopify\.com/);
+    const extractedShopId = shopIdMatch ? shopIdMatch[1] : null; // Capturing group 1 contains the shop ID
+
+    console.log("Extracted Shop ID:", extractedShopId);
     console.log("Webhook received:", payload);
 
     // Process webhook data
@@ -497,43 +499,7 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
   }
 });
 
-const shopData = async (req) => {
-  try {
-   // Build the absolute URL using req.protocol, req.get('host'), and the endpoint path
-   const url = `https://shopify-production-app.vercel.app/api/shop/all`;
 
-
-   const response = await fetch(url);  // Use the absolute URL
-    
-    // Log the response status for debugging
-    console.log("Response status:", response.status, response.statusText);
-    
-    // Check if the response was successful (status code 2xx)
-    if (response.ok) {
-      const responseData = await response.json();  // Parse response as JSON
-      
-      // Log the entire response data to inspect its structure
-      console.log("Full API Response Data:", responseData);
-      
-      // Validate the response structure and check for data
-      if (responseData && responseData.data && Array.isArray(responseData.data.data) && responseData.data.data.length > 0) {
-        const shopId = responseData.data.data[0].id;  // Access shop ID from the first item in data array
-        console.log("Shop ID:", shopId);  // Log the Shop ID to confirm it's correct
-        
-        return shopId;  // Return the shop ID instead of setting state
-      } else {
-        console.log("Unexpected data structure or no data found:", responseData);
-        return null;
-      }
-    } else {
-      console.error(`Error: ${response.status} ${response.statusText}`);
-      return null;
-    }
-  } catch (error) {
-    console.error("Error during API call:", error);
-    throw error;  // Throw error to handle it in the calling function
-  }
-};
 
 async function processWebhookData(payload) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
