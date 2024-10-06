@@ -496,7 +496,7 @@ async function processWebhookData(payload) {
     fetchDefaultAddress(),
     fetchConfigureData()
   ]);
-  console.log(shopData.data.data[0].id);
+  console.log("shop id",shopData);
   if (!defaultAddress) {
     console.error("No default address found. Shipment creation aborted.");
     return;
