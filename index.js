@@ -473,22 +473,16 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
-    const response = await fetch('/api/shop/all'); // Call the API you just defined
-    if (!response.ok) {
-      throw new Error('Failed to fetch shop data');
-    }
-
-    const shopData = await response.json();
-    console.log("Fetched shop data:", shopData);
-
   try {
     const payload = req.body;
+    console.log("webhook request data",req.query.shop);
     console.log("Webhook received:", payload);
 
     // Process webhook data
     await processWebhookData(payload);
 
     res.status(200).json({ success: true, message: 'Webhook received' });
+   
   } catch (error) {
     console.error('Error processing webhook:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
