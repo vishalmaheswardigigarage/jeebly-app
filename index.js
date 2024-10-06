@@ -532,7 +532,6 @@ async function processWebhookData(payload) {
     defaultAddress,
     orderNumber,
     getConfigure,
-    shopData
   });
 
   // Call the createShipment function with the extracted data
