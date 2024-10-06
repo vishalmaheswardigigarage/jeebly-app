@@ -490,7 +490,7 @@ async function processWebhookData(payload) {
   console.log("Processing webhook data:", JSON.stringify(payload, null, 2));
 
 
-//   // Fetch the default address and configure data
+//   // Fetch the default address and configure dat.
   const [shopData,defaultAddress, getConfigure] = await Promise.all([
     fetchShopData(),
     fetchDefaultAddress(),
