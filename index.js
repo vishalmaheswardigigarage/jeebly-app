@@ -497,10 +497,10 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
   }
 });
 
-const shopData = async () => {
+const shopData = async (req) => {
   try {
    // Build the absolute URL using req.protocol, req.get('host'), and the endpoint path
-   const url = `${req.protocol}://${req.get("shopify-production-app.vercel.app")}/api/shop/all`;
+   const url = `${req.protocol}://${req.get('host')}/api/shop/all`;
 
    const response = await fetch(url);  // Use the absolute URL
     
