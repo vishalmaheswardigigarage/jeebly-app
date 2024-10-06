@@ -670,7 +670,7 @@ return null; // Return null if no default address is found or if an error occurs
 }
 // // Fetch configuration data from the get_configuration API
 async function fetchConfigureData() {
-  // Fetch the stored client key from the API
+  // Fetch the stored client key from the api
 
 const url = `https://demo.jeebly.com/app/get_configuration?client_key=${clientKey}`;
 
