@@ -492,7 +492,7 @@ async function processWebhookData(payload) {
 
 //   // Fetch the default address and configure data
   const [defaultAddress, getConfigure] = await Promise.all([
-    fetchShopData()
+    fetchShopData(),
     fetchDefaultAddress(),
     fetchConfigureData(),
    
@@ -617,7 +617,7 @@ async function createShipment({
 
     if (response.ok) {
       console.log("Shipment created successfully:", responseBody);
-      const awbNumber = responseBody["AWB No"];
+      // const awbNumber = responseBody["AWB No"];
     
       // if (awbNumber) {
       //   updateOrderNoteWithAWB(orderNumber, awbNumber);ss
@@ -756,9 +756,10 @@ app.get("/api/shop/all", async (_req, res) => {
 });
 
 
+const session = res.locals.shopify.session;
 
 async function fetchShopData() {
-  const session = res.locals.shopify.session;
+ 
   try {
     const response = await shopify.api.rest.Shop.all({
       session: session,
