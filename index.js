@@ -444,6 +444,9 @@ app.use(express.json({
   }
 }));
 
+
+app.use("/api/*", shopify.validateAuthenticatedSession());
+
 let clientKey = null;
 
 
@@ -632,6 +635,20 @@ async function createShipment({
 }
 }
 
+async function fetchClientKey() {
+  app.get("/api/shop/key", async (_req, res) => {
+    try {
+      const shopData = await shopify.api.rest.Shop.all({
+        session: res.locals.shopify.session,
+      });
+      res.status(200).json({ success: true, data:shopData });
+    } catch (error) {
+      console.error('Error fetching shopdata:', error);
+      res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+    }
+  });
+}
+
 // Function to fetch the default address
 async function fetchDefaultAddress() {
   // Fetch the stored client key from the API
@@ -714,7 +731,7 @@ app.post(
   shopify.config.webhooks.path,
   shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
 );
-app.use("/api/*", shopify.validateAuthenticatedSession());
+
 
 app.get("/api/orders/all", async (_req, res) => {
   try {
@@ -745,24 +762,7 @@ app.get("/api/shop/all", async (_req, res) => {
 
 
 // Fetch and store the clientKey
-async function fetchClientKey() {
-  try {
-    const response = await fetch('http://localhost:3000/api/shop/all'); // Replace with your actual server address if needed
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
 
-    const result = await response.json();
-    
-    if (result.success) {
-      console.log('Shop Data:', result.data);
-    } else {
-      console.error('Error in shop data response:', result.message);
-    }
-  } catch (error) {
-    console.error('Error fetching shop data:', error.message);
-  }
-}
 
 
 app.use(shopify.cspHeaders());
