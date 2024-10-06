@@ -474,13 +474,22 @@ app.post('/api/webhooks/ordercreate', async (req, res) => {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
-   // Directly call the function to fetch shop data
-   const shopData = await shopify.api.rest.Shop.fetch({
-    session: res.locals.shopify.session,  // Assuming session is available here
-  });
+    // Make an internal call to fetch shop data
+    const response = await fetch(`https://shopify-production-app.vercel.app/api/shop/all`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add any necessary authentication or session headers if needed
+      },
+    });
 
-  const shopId = shopData.id;
-  console.log("Shop ID humari:", shopId);
+    if (!response.ok) {
+      throw new Error('Failed to fetch shop data');
+    }
+
+    const shopData = await response.json();
+    const shopId = shopData.data.id;  // Assuming the response structure contains `data.id`
+    console.log("Fetched Shop ID:", shopId);
 
   try {
     const payload = req.body;
