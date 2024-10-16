@@ -638,6 +638,7 @@ async function createShipment({
 
     if (response.ok) {
       console.log("Shipment created successfully:", responseBody);
+      // AWB vala code
       // const awbNumber = responseBody["AWB No"];
     
       // if (awbNumber) {
