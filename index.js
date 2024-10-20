@@ -519,7 +519,7 @@ async function processWebhookData(payload,extractedShopId) {
   // Extract data from the webhook payload
   const description = payload?.line_items?.[0]?.title || "Default description";
   const weight = Math.round(payload?.line_items?.[0]?.grams || 1000);
-  const codAmount = parseFloat(payload?.total_price) || 0;
+  const codAmount = paymentType === "Prepaid" ? 0.00 : parseFloat(payload?.total_price) || 0;
   const pieces = payload?.line_items?.length || 1;
   const timeZone = payload?.line_items?.timezone||"00:00";
   const dropoffName = payload?.shipping_address?.name || "Unknown";
