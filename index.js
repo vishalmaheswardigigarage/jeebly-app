@@ -519,7 +519,7 @@ async function processWebhookData(payload,extractedShopId) {
   // Extract data from the webhook payload
   const description = payload?.line_items?.[0]?.title || "Default description";
   const weight = Math.round(payload?.line_items?.[0]?.grams || 1000);
-  const codAmount = paymentType === "Prepaid" ? 0.00 : parseFloat(payload?.total_price) || 0;
+  const codAmount = parseFloat(payload?.total_price) || 0;
   const pieces = payload?.line_items?.length || 1;
   const timeZone = payload?.line_items?.timezone||"00:00";
   const dropoffName = payload?.shipping_address?.name || "Unknown";
@@ -528,13 +528,14 @@ async function processWebhookData(payload,extractedShopId) {
   const selectedCity = payload?.shipping_address?.city || "Dubai";
   const orderNumber = payload?.order_number || "#001";
   const paymentType = payload?.financial_status === "paid" ? "Prepaid" : "COD";
+  const codAmountToUse = paymentType === "Prepaid" ? 0.00 : codAmount;
   const pickupDate = getNextDayDate();
   const clientKey = extractedShopId;
 
   console.log("Extracted Data for Shipment:", {
     description,
     weight,
-    codAmount,
+    codAmountToUse,
     pieces,
     dropoffName,
     dropoffPhone,
@@ -553,7 +554,7 @@ async function processWebhookData(payload,extractedShopId) {
   await createShipment({
     description,
     weight,
-    codAmount,
+    codAmountToUse,
     pieces,
     dropoffName,
     dropoffPhone,
@@ -571,7 +572,7 @@ async function processWebhookData(payload,extractedShopId) {
 async function createShipment({
   description,
   weight,
-  codAmount,
+  codAmountToUse,
   pieces,
   dropoffName,
   dropoffPhone,
@@ -597,7 +598,7 @@ async function createShipment({
     description: description,
     weight: weight || "1000",
     payment_type: paymentType,
-    cod_amount: codAmount||"0.00",
+    cod_amount:  codAmountToUse||"0.00",
     num_pieces: pieces,
     customer_reference_number: orderNumber || "#001",
     origin_address_name: defaultAddress.addr_area,
