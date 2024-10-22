@@ -661,7 +661,7 @@ async function createShipment({
 async function fetchDefaultAddress(extractedShopId) {
 
   const clientKey = extractedShopId;
-  // Fetch the stored client key from the API
+  // Fetch the stored client key from the APi
 
 const url = `https://demo.jeebly.com/app/get_address?client_key=${clientKey}`;
 
