@@ -4,8 +4,21 @@ import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memor
 import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";  // Import SQLite session storage
 import { restResources } from "@shopify/shopify-api/rest/admin/2024-07";
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+
+
 dotenv.config();  // Load environment variables
-const sessionDb = new SQLiteSessionStorage('sessions.db');  // SQLite database file
+
+const dbDirectory = path.join(__dirname, 'database');
+if (!fs.existsSync(dbDirectory)) {
+  fs.mkdirSync(dbDirectory);  // Create the directory if it doesn't exist
+}
+
+// Define the full path to the SQLite database file
+const dbPath = path.join(dbDirectory, 'sessions.db');
+const sessionDb = new SQLiteSessionStorage(dbPath);  // Use SQLite session storag
+
 const shopify = shopifyApp({
   api: {
     apiVersion: LATEST_API_VERSION,
