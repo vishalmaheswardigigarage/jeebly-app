@@ -1,30 +1,32 @@
 import { LATEST_API_VERSION } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
-import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memory";
+// import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memory";
 import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";  // Import SQLite session storage
 import { restResources } from "@shopify/shopify-api/rest/admin/2024-07";
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';  // Import for ES module __dirname-like functionality
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 
 dotenv.config();  // Load environment variables
 
 
-// Manually create __dirname for ES module
+/// Manually create __dirname for ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure the directory for SQLite database exists
-const dbDirectory = path.join(__dirname, 'database');
+// Use the writable /tmp directory for SQLite storage
+const dbDirectory = '/tmp';
+
+// Ensure the directory exists (although /tmp typically exists on most systems)
 if (!fs.existsSync(dbDirectory)) {
-  fs.mkdirSync(dbDirectory);  // Create the directory if it doesn't exist
+  fs.mkdirSync(dbDirectory);  // Should succeed as /tmp is writable
 }
 
-// Define the full path to the SQLite database file
+// Define the full path to the SQLite database file in /tmp
 const dbPath = path.join(dbDirectory, 'sessions.db');
-const sessionDb = new SQLiteSessionStorage(dbPath);  // Use SQLite session storage
+const sessionDb = new SQLiteSessionStorage(dbPath);  // Use SQLite session storage in /tmp
 
 const shopify = shopifyApp({
   api: {
