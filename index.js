@@ -754,14 +754,33 @@ app.post(
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 
+// app.get("/api/orders/all", async (_req, res) => {
+//   try {
+//     const orderData = await shopify.api.rest.Order.all({
+//       session: res.locals.shopify.session,
+//       status: "any"
+//     });
+//     res.status(200).json({ success: true, data: orderData });
+//     console.log("order-data");
+//   } catch (error) {
+//     console.error('Error fetching orders:', error);
+//     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+//   }
+// });
 app.get("/api/orders/all", async (_req, res) => {
   try {
+    // Fetch all orders from Shopify API
     const orderData = await shopify.api.rest.Order.all({
       session: res.locals.shopify.session,
       status: "any"
     });
-    res.status(200).json({ success: true, data: orderData });
-    console.log("order-data");
+
+    // Filter orders where cancel_reason is null
+    const filteredOrders = orderData.data.filter(order => order.cancel_reason === null);
+
+    // Send the filtered orders as the response
+    res.status(200).json({ success: true, data: filteredOrders });
+    console.log("Filtered order data retrieved successfully");
   } catch (error) {
     console.error('Error fetching orders:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
