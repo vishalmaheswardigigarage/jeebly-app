@@ -524,8 +524,8 @@ async function processWebhookData(payload,extractedShopId) {
   const timeZone = payload?.line_items?.timezone||"00:00";
   const dropoffName = payload?.shipping_address?.name || "Unknown";
   const dropoffPhone = payload?.shipping_address?.phone || "Unknown";
-  const selectedArea = payload?.shipping_address?.address1 || "Unknown Area";
-  const selectedCity = payload?.shipping_address?.city || "Dubai";
+  const selectedArea = `${payload?.shipping_address?.address1 || ""} ${payload?.shipping_address?.address2 || ""}`.trim() || "Unknown Area";
+  const selectedCity = payload?.shipping_address?.province || "";
   const orderNumber = payload?.order_number || "#001";
   const paymentType = payload?.financial_status === "paid" ? "Prepaid" : "COD";
   const codAmountToUse = paymentType === "Prepaid" ? 0.00 : codAmount;
@@ -602,21 +602,21 @@ async function createShipment({
     num_pieces: pieces,
     customer_reference_number: orderNumber || "",
     origin_address_name: defaultAddress.addr_area||"",
-    origin_address_mob_no_country_code: "971",
+    origin_address_mob_no_country_code: "",
     origin_address_mobile_number: defaultAddress.addr_mobile_number||"",
     origin_address_house_no: defaultAddress.addr_house_no||"",
     origin_address_building_name: defaultAddress.addr_building_name || "",
     origin_address_area: defaultAddress.addr_area,
     origin_address_landmark: defaultAddress.addr_landmark,
-    origin_address_city: "Dubai",
+    origin_address_city: defaultAddress.addr_city||"",
     origin_address_type: "Normal",
     destination_address_name: dropoffName||"",
     destination_address_mob_no_country_code: "",
     destination_address_mobile_number: dropoffPhone || "",
-    destination_address_house_no: "43",
-    destination_address_building_name: "building_name",
+    destination_address_house_no: "",
+    destination_address_building_name: "",
     destination_address_area: selectedArea||"",
-    destination_address_landmark: "landmark",
+    destination_address_landmark: "",
     destination_address_city: selectedCity || "",
     destination_address_type: "Normal",
     pickup_date: pickupDate || "2024-09-12",
@@ -639,15 +639,6 @@ async function createShipment({
 
     if (response.ok) {
       console.log("Shipment created successfully:", responseBody);
-      // AWB vala code
-      // const awbNumber = responseBody["AWB No"];
-    
-      // if (awbNumber) {
-      //   updateOrderNoteWithAWB(orderNumber, awbNumber);ss
-      //   await updateOrder(orderNumber, awbNumber);
-      // } else {
-      //   console.error("AWB number is missing in the shipment response.");
-      // }
     } else {
       console.error("Failed to create shipment:", responseBody);
     }
@@ -754,19 +745,6 @@ app.post(
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 
-// app.get("/api/orders/all", async (_req, res) => {
-//   try {
-//     const orderData = await shopify.api.rest.Order.all({
-//       session: res.locals.shopify.session,
-//       status: "any"
-//     });
-//     res.status(200).json({ success: true, data: orderData });
-//     console.log("order-data");
-//   } catch (error) {
-//     console.error('Error fetching orders:', error);
-//     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-//   }
-// });
 app.get("/api/orders/all", async (_req, res) => {
   try {
     // Fetch all orders from Shopify API
