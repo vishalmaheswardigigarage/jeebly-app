@@ -741,7 +741,7 @@ app.post(
 
 );
 
-// hear the code
+// hear the code.
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 
