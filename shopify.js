@@ -1,7 +1,7 @@
 import { LATEST_API_VERSION } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
-// import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memory";
-import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";  // Import SQLite session storage
+import { MemorySessionStorage } from "@shopify/shopify-app-session-storage-memory";
+// import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";  // Import SQLite session storage
 import { restResources } from "@shopify/shopify-api/rest/admin/2024-07";
 import dotenv from 'dotenv';
 import path from 'path';
@@ -12,21 +12,21 @@ import { fileURLToPath } from 'url';
 dotenv.config();  // Load environment variables
 
 
-/// Manually create __dirname for ES module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// /// Manually create __dirname for ES module
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
-// Use the writable /tmp directory for SQLite storage
-const dbDirectory = '/tmp';
+// // Use the writable /tmp directory for SQLite storage
+// const dbDirectory = '/tmp';
 
-// Ensure the directory exists (although /tmp typically exists on most systems)
-if (!fs.existsSync(dbDirectory)) {
-  fs.mkdirSync(dbDirectory);  // Should succeed as /tmp is writable
-}
+// // Ensure the directory exists (although /tmp typically exists on most systems)
+// if (!fs.existsSync(dbDirectory)) {
+//   fs.mkdirSync(dbDirectory);  // Should succeed as /tmp is writable
+// }
 
 // Define the full path to the SQLite database file in /tmp
-const dbPath = path.join(dbDirectory, 'sessions.db');
-const sessionDb = new SQLiteSessionStorage(dbPath);  // Use SQLite session storage in /tmp
+// const dbPath = path.join(dbDirectory, 'sessions.db');
+// const sessionDb = new SQLiteSessionStorage(dbPath);  // Use SQLite session storage in /tmp
 
 const shopify = shopifyApp({
   api: {
@@ -44,8 +44,8 @@ const shopify = shopifyApp({
   webhooks: {
     path: "/api/webhooks",
   },
-  // sessionStorage: new MemorySessionStorage(),
-  sessionStorage: sessionDb,  // Use SQLite for session storage
+  sessionStorage: new MemorySessionStorage()
+  // sessionStorage: sessionDb,  // Use SQLite for session storage
 });
 
 async function createWebhook(shop, accessToken) {
