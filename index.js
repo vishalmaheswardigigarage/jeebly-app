@@ -516,7 +516,7 @@ async function processWebhookData(payload,extractedShopId) {
     return;
   }
 
-  // Extract data from the webhook payload
+  // Extract data from the webhook payload.
   const description = `${payload?.line_items?.[0]?.title || "Default title"} | SKU: ${payload?.line_items?.[0]?.sku || "N/A"} | Quantity: ${payload?.line_items?.[0]?.quantity || 0}`;
   const weight = Math.round(payload?.line_items?.[0]?.grams || 1000);
   const codAmount = parseFloat(payload?.total_price) || 0;
