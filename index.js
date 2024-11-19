@@ -517,7 +517,7 @@ async function processWebhookData(payload,extractedShopId) {
   }
 
   // Extract data from the webhook payload
-  const description = payload?.line_items?.[0]?.title || "Default description";
+  const description = `${payload?.line_items?.[0]?.title || "Default title"} | SKU: ${payload?.line_items?.[0]?.sku || "N/A"} | Quantity: ${payload?.line_items?.[0]?.quantity || 0}`;
   const weight = Math.round(payload?.line_items?.[0]?.grams || 1000);
   const codAmount = parseFloat(payload?.total_price) || 0;
   const pieces = payload?.line_items?.length || 1;
@@ -798,3 +798,20 @@ app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
