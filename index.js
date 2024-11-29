@@ -750,7 +750,7 @@ app.get("/api/shop/all", async (_req, res) => {
     const shopData = await shopify.api.rest.Shop.all({
       session: res.locals.shopify.session,
     });
-     shopId = shopData.data[0].id
+     shopId = shopData.id;
      console.log("endpoint of shop data",shopData,shopId)
     res.status(200).json({ success: true, data:shopData });
    
@@ -763,7 +763,7 @@ app.get("/api/shop/all", async (_req, res) => {
 
 app.get("/api/orders/all", async (_req, res) => {
   try {
-    // Fetch all orders from Shopify API.
+    // Fetch all orders from Shopify API
     const orderData = await shopify.api.rest.Order.all({
       session: res.locals.shopify.session,
       status: "any"
