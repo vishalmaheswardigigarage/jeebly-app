@@ -745,21 +745,44 @@ app.post(
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 
+// app.get("/api/shop/all", async (_req, res) => {
+//   try {
+//     const shopData = await shopify.api.rest.Shop.all({
+//       session: res.locals.shopify.session,
+//     });
+//      shopId = shopData.data.data[0].id;
+//      console.log("shop ke id",shopId,"shop");
+//      console.log("endpoint of shop data",shopData,shopId)
+//      res.status(200).json({ success: true, data:shopData });
+   
+//   } catch (error) {
+//     console.error('Error fetching shopdata:', error);
+//     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+//   }
+// });
 app.get("/api/shop/all", async (_req, res) => {
   try {
     const shopData = await shopify.api.rest.Shop.all({
       session: res.locals.shopify.session,
     });
-     shopId = shopData.id;
-     console.log("shop ke id",shopId,"shop data",shopData);
-     console.log("endpoint of shop data",shopData,shopId)
-     res.status(200).json({ success: true, data:shopData });
-   
+
+    // Check if data exists and has at least one item
+    if (shopData.data && shopData.data.data && shopData.data.data.length > 0) {
+      const shopId = shopData.data.data[0].id;
+      console.log("Shop ID:", shopId);
+      console.log("Endpoint of shop data:", shopData);
+
+      res.status(200).json({ success: true, data: shopData });
+    } else {
+      console.error('No shop data found');
+      res.status(404).json({ success: false, message: 'Shop data not found' });
+    }
   } catch (error) {
-    console.error('Error fetching shopdata:', error);
+    console.error('Error fetching shop data:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
+
 
 
 app.get("/api/orders/all", async (_req, res) => {
