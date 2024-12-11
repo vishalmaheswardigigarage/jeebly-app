@@ -752,7 +752,7 @@ app.get("/api/shop/all", async (_req, res) => {
       
     });
     console.log("endpoint of shop data",shopData.data.id);
-      res.status(200).json({ success: true, data:shopData.data});
+      res.status(200).json({ success: true, data:shopData});
     
   } catch (error) {
     console.error('Error fetching shopdata:', error);
