@@ -220,7 +220,7 @@ async function processWebhookData(payload,extractedShopId) {
     timeZone
   });
 
-  // // Function to call the bookshipment API...
+  // // Function to call the bookshipment API
 async function createShipment({
   description,
   weight,

@@ -1,31 +1,27 @@
 {
-  "name": "shopify-app",
+  "name": "jeebly-app-latest",
   "version": "1.0.0",
-  "private": true,
-  "license": "MIT",
+  "main": "web/index.js",
+  "license": "UNLICENSED",
   "scripts": {
-    "debug": "node --inspect-brk index.js",
-    "dev": "cross-env NODE_ENV=development nodemon index.js --ignore ./src",
-    "serve": "cross-env NODE_ENV=production node index.js"
-  },
-  "type": "module",
-  "engines": {
-    "node": ">=18.13.0"
+    "shopify": "shopify",
+    "build": "shopify app build",
+    "dev": "shopify app dev",
+    "info": "shopify app info",
+    "generate": "shopify app generate",
+    "deploy": "shopify app deploy"
   },
   "dependencies": {
-    "@shopify/shopify-api": "^11.3.0",
-    "@shopify/shopify-app-express": "^5.0.4",
-    "@shopify/shopify-app-session-storage-sqlite": "^4.0.4",
-    "axios": "^1.7.6",
-    "compression": "^1.7.4",
-    "cross-env": "^7.0.3",
-    "dotenv": "^16.4.5",
-    "serve-static": "^1.15.0",
-    "styled-components": "^6.1.13"
+    "@shopify/app-bridge": "^3.7.10",
+    "body-parser": "^1.20.2",
+    "crypto": "^1.0.1",
+    "express": "^4.19.2"
   },
-  "devDependencies": {
-    "nodemon": "^3.1.4",
-    "prettier": "^3.3.3",
-    "pretty-quick": "^4.0.0"
-  }
+  "author": "Win10pro",
+  "private": true,
+  "workspaces": [
+    "extensions/*",
+    "web",
+    "web/frontend"
+  ]
 }

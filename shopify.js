@@ -13,7 +13,7 @@ import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mong
 // const MONGO_URI = "mongodb+srv://shekharpareek:nRJxxajEi8zuZhBL@cluster0.yo9hd.mongodb.net/myDatabase?retryWrites=true&w=majority";
 const MONGO_URI = 'mongodb+srv://vishalmaheshwar:Newday@123@jeebly-app.z0e08.mongodb.net/?retryWrites=true&w=majority&appName=Jeebly-app'
 const DB_NAME = "jeebly-app";
-dotenv.config();  // Load environment variables..
+dotenv.config();  // Load environment variables.....
 
 
 // /// Manually create __dirname for ES module
