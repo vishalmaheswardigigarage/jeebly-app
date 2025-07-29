@@ -7,9 +7,13 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
 
 
-dotenv.config();  // Load environment variables
+// const MONGO_URI = "mongodb+srv://shekharpareek:nRJxxajEi8zuZhBL@cluster0.yo9hd.mongodb.net/myDatabase?retryWrites=true&w=majority";
+const MONGO_URI = 'mongodb+srv://vishalmaheshwar:Newday@123@jeebly-app.z0e08.mongodb.net/?retryWrites=true&w=majority&appName=Jeebly-app'
+const DB_NAME = "jeebly-app";
+dotenv.config();  // Load environment variables..
 
 
 // /// Manually create __dirname for ES module
@@ -29,6 +33,7 @@ dotenv.config();  // Load environment variables
 // const sessionDb = new SQLiteSessionStorage(dbPath);  // Use SQLite session storage in /tmp
 
 const shopify = shopifyApp({
+  
   api: {
     apiVersion: LATEST_API_VERSION,
     apiKey: process.env.SHOPIFY_API_KEY,
@@ -44,8 +49,9 @@ const shopify = shopifyApp({
   webhooks: {
     path: "/api/webhooks",
   },
-  sessionStorage: new MemorySessionStorage()
-  // sessionStorage: sessionDb,  // Use SQLite for session storage
+  
+  sessionStorage: new MongoDBSessionStorage(MONGO_URI, DB_NAME)
+//  sessionStorage: new MemorySessionStorage() //this isthe last memory storage
 });
 
 async function createWebhook(shop, accessToken) {
